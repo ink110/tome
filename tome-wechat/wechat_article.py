@@ -1366,12 +1366,13 @@ def run_batch(args):
     todo = [a for a in articles if args.force or a["key"] not in existing_keys]
     skipped = len(articles) - len(todo)
 
+    eagle_folder = args.eagle_folder or tc.eagle_settings().get("folder") or "tome素材"
     folder_id = None
     if todo:
         try:
             eagle_library_root()
-            folder_id = resolve_or_create_folder(args.eagle_folder)
-            print(f"[Eagle] 文件夹: {args.eagle_folder} (id={folder_id})")
+            folder_id = resolve_or_create_folder(eagle_folder)
+            print(f"[Eagle] 文件夹: {eagle_folder} (id={folder_id})")
         except Exception as exc:
             print(f"[错误] Eagle 预检失败：{exc}", file=sys.stderr)
             return 2
