@@ -1017,14 +1017,15 @@ def main():
     author = args.author or config.get("author", "")
     editor = args.editor or config.get("editor", "")
     edition = f"阅读优化版 · {args.date}" if args.mode == "reading" else f"归档版 · {args.date}"
-    out = os.path.expanduser(args.out or config.get("out")
-                             or str(tc.output_dir() / f"{title}.epub"))
+    # 构建过程会切换工作目录，相对路径必须先转成绝对路径
+    out = os.path.abspath(os.path.expanduser(
+        args.out or config.get("out") or str(tc.output_dir() / f"{title}.epub")))
     md_out = args.md_out or config.get("md_out")
     if md_out:
-        md_out = os.path.expanduser(md_out)
+        md_out = os.path.abspath(os.path.expanduser(md_out))
     cover = args.cover or config.get("cover")
     if cover:
-        cover = os.path.expanduser(cover)
+        cover = os.path.abspath(os.path.expanduser(cover))
         if not os.path.exists(cover):
             print(f"⚠️ 封面不存在，忽略：{cover}")
             cover = None

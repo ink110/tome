@@ -2,6 +2,12 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。
 
+## [1.0.1] - 2026-11-15
+
+### 修复
+
+- `build_book.py` / `make_cover.py` 的输出路径改为绝对路径。之前传相对路径（如 `--out ./book.epub`）会因为构建过程切换工作目录而写错位置。
+
 ## [1.0.0] - 2026-11-15
 
 首个公开版本。

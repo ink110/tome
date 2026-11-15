@@ -51,7 +51,8 @@ def main():
     if not os.path.exists(TEMPLATE):
         raise SystemExit(f"找不到模板：{TEMPLATE}")
 
-    out = os.path.expanduser(args.out or str(tc.output_dir() / "cover.png"))
+    out = os.path.abspath(os.path.expanduser(
+        args.out or str(tc.output_dir() / "cover.png")))
     os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
     tpl = open(TEMPLATE, encoding="utf-8").read()
     tpl = (tpl.replace("{{TITLE}}", html.escape(args.title))
