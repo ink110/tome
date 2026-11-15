@@ -24,6 +24,22 @@ python3 ~/.claude/skills/tome-wechat/wechat_article.py --url <文章链接> \
 
 单篇 exit 1「js_content 为空」但浏览器能打开 → 大概率是图片消息（纯图卡片）。处理：**解析 `picture_page_info_list` 取原图 → 下载进 assets → 视觉模型逐字 OCR → 图在上文字在下组装笔记**。完整流程见 [references/image-post.md](references/image-post.md)，不要当成「已删除」直接放弃。
 
+### 文章内视频 → 图文笔记
+
+`wechat_article.py` 已经会解析腾讯视频 iframe 的 `videoPageInfos`，取最高清 mp4 下载到 `assets/`（带 `Referer`），笔记里以 `![[assets/xxx.mp4]]` 引用。**抓取只到「拿到 mp4」，转写和图文笔记交给 `tome-video`**：
+
+```bash
+python3 ~/.claude/skills/tome-video/scripts/video_note.py \
+  --file "<专题>/assets/<视频文件>.mp4" \
+  --title "<文章标题>" --source-url "<文章链接>"
+```
+
+跑完后按 `tome-video` 的组装规则产出 10–25 张关键帧 + 图注 + 口播全文，落到 `topics/<topic>/30-视频/`。注意：
+
+- **不要再拿文章 URL 重下一次**：本地 mp4 就是最高清流，重复请求可能 403。
+- 只在用户明确要「视频转笔记」时跑；转写 + 视觉描述耗时较长，批量抓取时不要自动触发。
+- 长讲座 / 圆桌录像不用 `tome-video`，用 `obsidian-lecture-notes` 的 `video_prepare.py`（按幻灯片稳定帧和 OCR 优化）。
+
 ## 专辑 / 账号列表
 
 ```bash

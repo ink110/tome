@@ -10,6 +10,7 @@
 - 视频号元数据抓取（`sph_meta.js`）：标题、作者、发布时间、点赞/收藏/转发/评论。
 - 补齐 `tome-video` 的 `references/pipeline.md`、`references/sph-capture.md`。
 - `install.sh` 和 README 登记 `tome-video`。
+- `tome-wechat` 增加「文章内视频 → tome-video」的交接说明，视频转写不再标记为未实现。
 
 ### 已知边界
 
