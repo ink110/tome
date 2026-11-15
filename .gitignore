@@ -1,0 +1,24 @@
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+.backups/
+.claude/
+
+# 本仓库只发布 tome 技能族
+/eagle-curator/
+/html-ppt/
+/huashu-art-motion/
+/impeccable/
+/memory/
+/neat-freak/
+/skill-creator/
+/ui-ux-pro-max/
+/obsidian-lecture-notes/
+
+# 构建产物与运行中间文件
+*.epub
+*.tmp
+_distill-plan.json
+_distill-results.json

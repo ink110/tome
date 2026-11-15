@@ -1,0 +1,36 @@
+{
+  "schema": "tome-manifest/v1",
+  "platform": "demo",
+  "person": "林舟（虚构）",
+  "collection": "产品决策三讲",
+  "generated": "2026-03-20",
+  "items": [
+    {
+      "id": "001",
+      "title": "用户说的需求不是真需求",
+      "published": "2026-03-01",
+      "source_url": "https://example.com/talk/001",
+      "duration": "03:20",
+      "stat": null,
+      "note": "001：用户说的需求不是真需求.md"
+    },
+    {
+      "id": "002",
+      "title": "把复杂留给系统",
+      "published": "2026-03-08",
+      "source_url": "https://example.com/talk/002",
+      "duration": "03:10",
+      "stat": null,
+      "note": "002：把复杂留给系统.md"
+    },
+    {
+      "id": "003",
+      "title": "一次失败的改版复盘",
+      "published": "2026-03-15",
+      "source_url": "https://example.com/talk/003",
+      "duration": "03:30",
+      "stat": null,
+      "note": "003：一次失败的改版复盘.md"
+    }
+  ]
+}
