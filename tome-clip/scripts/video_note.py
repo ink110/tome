@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""tome-video: 视频 → 结构化素材包（口播转写 + 关键帧 + 视觉描述 + 时间对齐）。
+"""tome-clip: 视频 → 结构化素材包（口播转写 + 关键帧 + 视觉描述 + 时间对齐）。
 
 只做机器活，不写笔记。产物 work.json 交给 Claude 组装 Obsidian 图文笔记。
 
@@ -298,7 +298,7 @@ def main():
     ap.add_argument("--author", default="")
     ap.add_argument("--source-url", default="")
     ap.add_argument("--sph-meta", help="视频号元数据 json（sph_meta.js 产物）")
-    ap.add_argument("--workdir", help="默认 ~/.cache/tome-video/<slug>-<hash>")
+    ap.add_argument("--workdir", help="默认 ~/.cache/tome-clip/<slug>-<hash>")
     ap.add_argument("--from-stage", default="download",
                     choices=["download", "transcribe", "frames", "vision", "align"])
     ap.add_argument("--max-frames", type=int, default=0, help=f"关键帧上限，默认 {MAX_FRAMES}")
@@ -314,7 +314,7 @@ def main():
     key = args.url or args.file
     slug = slugify(args.title or Path(key).stem)
     h = hashlib.md5(key.encode()).hexdigest()[:6]
-    workdir = Path(args.workdir or os.path.expanduser(f"~/.cache/tome-video/{slug}-{h}"))
+    workdir = Path(args.workdir or os.path.expanduser(f"~/.cache/tome-clip/{slug}-{h}"))
     ensure_dir(workdir)
     work_json = workdir / "work.json"
     state = json.loads(work_json.read_text()) if work_json.exists() else {}

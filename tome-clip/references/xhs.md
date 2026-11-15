@@ -71,7 +71,7 @@ python3 xhs_note.py --url '<带 xsec_token 的链接>'
    `http://sns-webpic-qc.xhscdn.com/...!h5_1080jpg`，直接 GET 即可，需带 Referer。
 3. `ocr`：逐张调 Ollama `qwen3-vl:32b-instruct`，提示词要求逐字转写、保留层级、
    不概括、看不清用 `[?]`。结果存 `ocr/001.txt…`，同时写回 `note.json.ocr`。
-4. 产物：`~/.cache/tome-video/<slug>-<hash>/note.json`。
+4. 产物：`~/.cache/tome-clip/<slug>-<hash>/note.json`。
 
 组装笔记时：frontmatter 的 `source` 用 `canonical_url`，`share_url` 存
 `source_url`（带 token，短期可匿名打开）。这样 token 过期后笔记仍能定位到原帖。

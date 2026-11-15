@@ -12,7 +12,7 @@
 ## 第一步：抓元数据
 
 ```bash
-cd ~/.claude/skills/tome-video/scripts
+cd ~/.claude/skills/tome-clip/scripts
 npm install                       # 首次，安装 puppeteer-core
 node sph_meta.js "<sph 分享链接>" meta.json
 ```
@@ -48,7 +48,7 @@ node sph_meta.js "<sph 分享链接>" meta.json
 ## 第三步：跑流水线
 
 ```bash
-python3 ~/.claude/skills/tome-video/scripts/video_note.py \
+python3 ~/.claude/skills/tome-clip/scripts/video_note.py \
   --file ~/Downloads/xxx.mp4 \
   --sph-meta meta.json
 ```

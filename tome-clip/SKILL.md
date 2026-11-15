@@ -1,23 +1,37 @@
 ---
-name: tome-video
-description: tome 采集环（小红书 / 视频号 → 图文笔记）。给小红书图文或视频链接、微信视频号 sph 链接或本地视频文件：图文笔记取原图并用 qwen3-vl 逐字 OCR；视频自动下载 → whisper 口播转写（带时间戳）→ 场景切换抽帧 → 逐帧视觉描述 → 按时间戳对齐；最后组装成 Obsidian 图文笔记。当用户给 xiaohongshu.com/小红书图文/小红书视频、weixin.qq.com/sph、channels.weixin.qq.com 链接，或说「这个视频转成笔记」「图文笔记存进知识库」「视频转图文」「截图配口播」时使用。
+name: tome-clip
+description: tome 采集环（单篇剪藏 → Obsidian 图文笔记）。给一篇公众号文章、小红书图文/视频、微信视频号链接或本地视频：自动识别来源并路由——公众号文章抓正文 + 媒体，小红书图文取原图 + qwen3-vl 逐字 OCR，视频做口播转写 + 稳定帧 + 视觉描述，最后整理成统一的 Obsidian 图文笔记。当用户说「存这一篇」「剪藏」「爬这篇文章」「这个视频转成笔记」「图文笔记存进知识库」「小红书 / 公众号存进 Obsidian」时使用。
 ---
 
-# tome-video · 小红书 / 视频号 → Obsidian 图文笔记
+# tome-clip · 单篇采集 → Obsidian 图文笔记
 
-核心思路：**机器活全在本地脚本里**（取图/OCR/下载/转写/抽帧/视觉描述），**组装和提炼由 Claude 做**。视频笔记对齐 IXDC2026 风格：每张关键帧配一句结合口播的图注；图文笔记保留原图顺序，图注压成一句有信息增量的话，OCR 原文放在图下。
+核心思路：**一个入口，按链接自动分流**。`clip.py` 只做 URL 路由；重活调用现有脚本
+（`tome-wechat/wechat_article.py`、`xhs_note.py`、`video_note.py`）；筛选、图注和笔记组装由 Claude 做。
 
-## 输入路由（先看链接类型）
+```bash
+# 单篇统一入口
+python3 ~/.claude/skills/tome-clip/scripts/clip.py --url <链接> [--topic 专题] [--dry-run]
+python3 ~/.claude/skills/tome-clip/scripts/clip.py --file <本地视频> [--title 标题]
+
+# 只看路由，不执行
+python3 ~/.claude/skills/tome-clip/scripts/clip.py --url <链接> --dry-run
+```
+
+## 输入路由
 
 | 输入 | 走法 |
 |---|---|
-| `xiaohongshu.com` 图文笔记 | `xhs_note.py --url <链接>`：移动端 SSR 取元数据 → 下载原图 → qwen3-vl 逐字 OCR → `note.json` |
-| `xiaohongshu.com` 视频笔记 | `xhs_note.py --url <链接>` 自动判断并转交 `video_note.py`；也可直接 `video_note.py --url` |
+| `mp.weixin.qq.com/s/...` 普通文章 | `tome-wechat/wechat_article.py --url`：抓正文 + 图片/GIF/视频，直接写 Obsidian 笔记 |
+| 公众号图片消息（`js_content` 为空） | 按 `tome-wechat/references/image-post.md` 的图片 OCR 流程 |
+| `xiaohongshu.com` 图文笔记 | `xhs_note.py --url`：移动端 SSR 取元数据 → 原图 → qwen3-vl 逐字 OCR → `note.json` |
+| `xiaohongshu.com` 视频笔记 | `xhs_note.py --url` 自动判断并转交 `video_note.py`；也可直接 `video_note.py --url` |
 | `xhslink.com` 短链 | 同上，脚本自动跟随跳转；**必须带 `xsec_token`** |
 | `weixin.qq.com/sph/…` 视频号 | **半自动**：视频流拿不到（匿名接口只回封面+元数据）。先 `node sph_meta.js <链接> meta.json` 抓元数据，然后请 ink 投送 mp4（见下），再 `--file 投送的mp4 --sph-meta meta.json` |
 | 本地 mp4/mov | `video_note.py --file <路径> --title <标题>` |
 
 小红书链接没有 `xsec_token` 会拿不到数据。让 ink 在 App 里「分享 → 复制链接」，把整段分享内容发过来即可（短链也可以）。
+
+公众号文章由 `wechat_article.py` 直接写笔记和媒体，抓完检查标题、正文、图片/视频引用后汇报即可，不走下面的图文/视频组装流程。
 
 **视频号投送方式（告诉 ink 二选一）：**
 1. 电脑微信里打开该视频号视频 → 用 res-downloader 类抓包工具保存 mp4（或未装则：手机微信里把视频「保存到相册」再 AirDrop 到 Mac）；
@@ -27,29 +41,31 @@ description: tome 采集环（小红书 / 视频号 → 图文笔记）。给小
 
 ```bash
 # 小红书：自动判断图文 / 视频
-python3 ~/.claude/skills/tome-video/scripts/xhs_note.py --url <链接> \
+python3 ~/.claude/skills/tome-clip/scripts/xhs_note.py --url <链接> \
     [--no-ocr] [--meta-only] [--max-images 20]
 
 # 视频（xhs_note.py 会自动转交；也可单独跑）
-python3 ~/.claude/skills/tome-video/scripts/video_note.py \
+python3 ~/.claude/skills/tome-clip/scripts/video_note.py \
     --url <小红书链接>                # 或 --file <本地视频> [--sph-meta meta.json]
     [--title 标题] [--topic 不用管]    # topic 由 Claude 在组装阶段判断
 ```
 
-**图文笔记**：`fetch → images → ocr`，产物在 `~/.cache/tome-video/<slug>-<hash>/`：
+**图文笔记**：`fetch → images → ocr`，产物在 `~/.cache/tome-clip/<slug>-<hash>/`：
 `note.json`（元数据 + 图片路径 + OCR 结果）、`images/001.jpg…`、`ocr/001.txt…`。
 OCR 用本地 `qwen3-vl:32b-instruct` 逐字转写，约 10–20s/张；`--no-ocr` 只取图。
 
 **视频笔记**：`download → transcribe → frames → vision → align`，产物是 `work.json`。
 断点续跑：`--from-stage vision --workdir <目录>`（同一 workdir，自动读已有状态）。
 
-- **transcribe**：mlx_whisper + large-v3-turbo，中文，带时间戳。19 分钟视频约 3–5 分钟。
+- **transcribe**：mlx_whisper + large-v3-turbo，中文，带时间戳。19 分钟视频约 30–60 秒。
 - **frames**：1fps 采样 + dHash 稳定帧检测，等幻灯片淡入/动画结束、连续两帧稳定后才取帧；检测失败或不足 4 帧才退回均匀采样。上限 40 帧（`--max-frames` 可调）。
 - **transcribe 额外产物**：`transcript.txt`（原始拼接）和 `transcript_paragraphs.txt`（按主题词/转折词切好的自然段）。写笔记时用后者，不要整段粘贴。
 - **vision**：本地 `qwen3-vl:32b-instruct` 逐帧描述，文字板/幻灯片**逐字提取**，约 10s/帧。
 - **align**：每帧取 `[t-8s, t+4s]` 窗口的口播文本，供 Claude 写图注。
 
 ## 组装笔记（Claude 做，不写脚本）
+
+> 公众号文章由 `wechat_article.py` 直接写笔记，跳过本节。本节适用于小红书图文/视频、视频号和本地视频。
 
 先判断素材包类型：有 `work.json` → 视频笔记；有 `note.json` 且 `type != video` → 图文笔记。
 
@@ -125,7 +141,7 @@ tags: [clippings, xhs, image]
 5. **落盘**：
    - 视频笔记 → `topics/<topic>/30-视频/<标题>.md`；帧图 → `topics/<topic>/30-视频/attachments/<slug>/fNNNN.jpg`（只复制入选帧）
    - 图文笔记 → `topics/<topic>/30-图文/<标题>.md`；原图 → `topics/<topic>/30-图文/attachments/<slug>/00X.jpg`
-   - 更新 `topics/<topic>/index.md` 的 `<!-- tome-video:start/end -->` 区块（没有就建，视频/图文分小节）。
+   - 更新 `topics/<topic>/index.md` 的 `<!-- tome-clip:start/end -->` 区块（没有就建，视频/图文分小节）。
 6. **汇报**：笔记路径、图片/帧数、OCR 字数或口播字数、耗时。若视频号是手动投送，提醒 ink 原始 mp4 还在 Downloads，可自行清理。
 
 ## 质量要求

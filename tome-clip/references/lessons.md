@@ -138,26 +138,28 @@ dHash 只能保证「画面稳定」，不能保证「有信息」。稳定帧�
 
 - 视频笔记 → `topics/<topic>/30-视频/<标题>.md`，帧 → `.../attachments/<slug>/fNNNN.jpg`
 - 图文笔记 → `topics/<topic>/30-图文/<标题>.md`，原图 → `.../attachments/<slug>/00X.jpg`
-- 索引更新 `topics/<topic>/index.md` 的 `<!-- tome-video:start/end -->` 区块
+- 索引更新 `topics/<topic>/index.md` 的 `<!-- tome-clip:start/end -->` 区块
 - frontmatter：`title / source(canonical) / share_url / author / published / platform / stats / tags`
 - `stats` 是发布时的快照，会变；保留抓取时的值即可，不要假装实时
 - 旧附件目录不要自动删；换图时新建 `-v2` 目录，确认后再清理旧目录
 
 ## 7. 架构决策：单篇采集只留一个入口
 
-**结论**：`tome-video` 升级/重命名为 `tome-clip`，做单篇采集的薄路由；
+**已执行（2026-11）**：`tome-video` 重命名为 `tome-clip`，做单篇采集的薄路由；
 `tome-wechat` 保留批量 / 专辑 / 账号列表 / AI 阅读卡片 / 去重；
 `obsidian-lecture-notes` 保留长讲座 / 圆桌；`tome-portrait/spread/book` 保留成书链路。
 
 理由：
 
 - 用户日常动作是「看到一篇 → 存进 Obsidian」，不是「先判断这是公众号还是小红书」。
-- 按平台拆技能会让 `tome-wechat`、`tome-video`、新技能抢同一个链接，触发词互相冲突。
-- `tome-video` 已经支持小红书图文，名字本身就不准了。
+- 按平台拆技能会让 `tome-wechat`、旧的 `tome-video`、新技能抢同一个链接，触发词互相冲突。
+- 旧的 `tome-video` 已经支持小红书图文，名字本身就不准了。
 - 不要在第四个技能里复制转写/抽帧/OCR 引擎；`tome-clip` 只做 URL 路由和统一笔记模板，
   重活调用现有脚本。
 
-建议的 `tome-clip` 路由：
+统一入口：`python3 ~/.claude/skills/tome-clip/scripts/clip.py --url <链接>`。
+
+路由：
 
 | 输入 | 走法 |
 | --- | --- |

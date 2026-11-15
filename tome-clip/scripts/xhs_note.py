@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""tome-video: 小红书笔记 → 结构化素材包。
+"""tome-clip: 小红书笔记 → 结构化素材包。
 
 - 图文笔记：取原图、视觉模型逐字 OCR，产出 note.json + images/ + ocr/
 - 视频笔记：解析元数据后自动转交 video_note.py（下载 → 转写 → 抽帧 → 视觉 → 对齐）
@@ -47,7 +47,7 @@ def slugify(s: str, n=40) -> str:
 def workdir_for(title: str, key: str) -> Path:
     slug = slugify(title)
     h = hashlib.md5(key.encode()).hexdigest()[:6]
-    return Path(os.path.expanduser(f"~/.cache/tome-video/{slug}-{h}"))
+    return Path(os.path.expanduser(f"~/.cache/tome-clip/{slug}-{h}"))
 
 
 def http_get(url: str, referer="https://www.xiaohongshu.com/", timeout=30) -> bytes:
@@ -262,7 +262,7 @@ def main():
 
     work_json.write_text(json.dumps(note, ensure_ascii=False, indent=1), encoding="utf-8")
     print(f"\n完成。素材包: {work_json}")
-    print("下一步：读 note.json，按 tome-video SKILL.md 的图文笔记结构组装 Obsidian 笔记。")
+    print("下一步：读 note.json，按 tome-clip SKILL.md 的图文笔记结构组装 Obsidian 笔记。")
 
 
 if __name__ == "__main__":

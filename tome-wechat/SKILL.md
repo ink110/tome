@@ -7,6 +7,8 @@ description: 抓取微信公众号文章 / 专辑 / 博主文章列表（文字 
 
 两个模式：单篇；专辑 / 账号列表批量。批量永远**先枚举、判断专题、必要时问用户，再抓**。
 
+单篇剪藏优先走 `tome-clip`（自动识别公众号 / 小红书 / 视频号）；本技能保留单篇脚本，兼容直接调用和批量流程复用。
+
 配置（媒体存哪、用哪个模型）由 `~/.config/tome/config.json` 决定，见 `tome/references/setup.md`。
 
 ## 单篇
@@ -26,19 +28,19 @@ python3 ~/.claude/skills/tome-wechat/wechat_article.py --url <文章链接> \
 
 ### 文章内视频 → 图文笔记
 
-`wechat_article.py` 已经会解析腾讯视频 iframe 的 `videoPageInfos`，取最高清 mp4 下载到 `assets/`（带 `Referer`），笔记里以 `![[assets/xxx.mp4]]` 引用。**抓取只到「拿到 mp4」，转写和图文笔记交给 `tome-video`**：
+`wechat_article.py` 已经会解析腾讯视频 iframe 的 `videoPageInfos`，取最高清 mp4 下载到 `assets/`（带 `Referer`），笔记里以 `![[assets/xxx.mp4]]` 引用。**抓取只到「拿到 mp4」，转写和图文笔记交给 `tome-clip`**：
 
 ```bash
-python3 ~/.claude/skills/tome-video/scripts/video_note.py \
+python3 ~/.claude/skills/tome-clip/scripts/video_note.py \
   --file "<专题>/assets/<视频文件>.mp4" \
   --title "<文章标题>" --source-url "<文章链接>"
 ```
 
-跑完后按 `tome-video` 的组装规则产出 10–25 张关键帧 + 图注 + 口播全文，落到 `topics/<topic>/30-视频/`。注意：
+跑完后按 `tome-clip` 的组装规则产出 10–25 张关键帧 + 图注 + 口播全文，落到 `topics/<topic>/30-视频/`。注意：
 
 - **不要再拿文章 URL 重下一次**：本地 mp4 就是最高清流，重复请求可能 403。
 - 只在用户明确要「视频转笔记」时跑；转写 + 视觉描述耗时较长，批量抓取时不要自动触发。
-- 长讲座 / 圆桌录像不用 `tome-video`，用 `obsidian-lecture-notes` 的 `video_prepare.py`（按幻灯片稳定帧和 OCR 优化）。
+- 长讲座 / 圆桌录像不用 `tome-clip`，用 `obsidian-lecture-notes` 的 `video_prepare.py`（按幻灯片稳定帧和 OCR 优化）。
 
 ## 专辑 / 账号列表
 

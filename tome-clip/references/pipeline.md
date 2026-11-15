@@ -1,4 +1,4 @@
-# tome-video 流水线参考
+# tome-clip 流水线参考
 
 > 踩坑总表见 [lessons.md](lessons.md)。
 
@@ -28,7 +28,7 @@ pip install mlx-whisper            # 按 mlx-whisper 官方说明
 ollama pull qwen3-vl:32b-instruct
 
 # 视频号元数据（可选，仅 sph_meta.js 需要）
-cd ~/.claude/skills/tome-video/scripts && npm install
+cd ~/.claude/skills/tome-clip/scripts && npm install
 ```
 
 ## 参数

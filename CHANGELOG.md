@@ -6,14 +6,18 @@
 
 ### 新增
 
-- `tome-video` 技能：小红书视频 / 微信视频号 / 本地视频 → 口播转写 + 场景抽帧 + 本地视觉描述 + 时间对齐，输出可组装成 Obsidian 图文笔记的素材包。
+- `tome-clip` 技能：小红书视频 / 微信视频号 / 本地视频 → 口播转写 + 场景抽帧 + 本地视觉描述 + 时间对齐，输出可组装成 Obsidian 图文笔记的素材包。
 - 小红书图文笔记：`xhs_note.py` 用移动端 SSR 解析元数据、按原顺序取图、qwen3-vl 逐字 OCR；视频笔记自动转交 `video_note.py`。
 - 小红书笔记同时保留 canonical 链接和带 `xsec_token` 的分享链接，token 过期后仍可溯源。
 - 视频号元数据抓取（`sph_meta.js`）：标题、作者、发布时间、点赞/收藏/转发/评论。
-- 补齐 `tome-video` 的 `references/xhs.md`、`references/pipeline.md`、`references/sph-capture.md`。
+- 补齐 `tome-clip` 的 `references/xhs.md`、`references/pipeline.md`、`references/sph-capture.md`。
 - 新增 `references/lessons.md`：沉淀 xsec_token、图文/视频判断、稳定帧、图注对齐、口播分段和单篇采集入口的踩坑与决策记录。
-- `install.sh` 和 README 登记 `tome-video`；`tome` 中枢增加小红书 / 视频号 / 本地视频的采集路由。
-- `tome-wechat` 增加「文章内视频 → tome-video」的交接说明，视频转写不再标记为未实现。
+- `install.sh` 和 README 登记 `tome-clip`；`tome` 中枢增加小红书 / 视频号 / 本地视频的采集路由。
+- `tome-wechat` 增加「文章内视频 → tome-clip」的交接说明，视频转写不再标记为未实现。
+
+### 变更
+
+- `tome-video` 重命名为 `tome-clip`，作为单篇采集统一入口：公众号文章 / 小红书图文·视频 / 视频号 / 本地视频。`tome-wechat` 保留批量、专辑、账号列表、AI 阅读卡片和去重。
 
 ### 修复
 
@@ -25,7 +29,8 @@
 ### 已知边界
 
 - 视频号视频流无法匿名下载，mp4 需手动投送。
-- 小红书**图文笔记**（无视频）尚未支持。
+- 小红书分享链接里的 `xsec_token` 有时效，过期后需要重新分享。
+- Live Photo 只取静态图，不处理内嵌短视频。
 
 ## [1.0.2] - 2026-11-15
 
