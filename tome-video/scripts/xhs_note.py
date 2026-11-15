@@ -121,6 +121,8 @@ def normalize(note: dict, url: str) -> dict:
         "avatar": user.get("avatar") or "",
         "published": published,
         "source_url": url,
+        # 分享链接里的 xsec_token 会过期；长期引用用不带 token 的 canonical
+        "canonical_url": f"https://www.xiaohongshu.com/explore/{note_id}" if note_id else url,
         "platform": "小红书",
         "stats": {
             "点赞": inter.get("likedCount", ""),

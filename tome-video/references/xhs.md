@@ -48,6 +48,8 @@ window.__INITIAL_STATE__.note.noteDetailMap[<note_id>].note
 | --- | --- |
 | `note_id` | `noteId`，缺失时从 URL 提取 |
 | `type` | `type`（`video` / `normal`） |
+| `source_url` | 实际请求的分享链接（带 `xsec_token`，会过期） |
+| `canonical_url` | `https://www.xiaohongshu.com/explore/<note_id>`，长期可溯源 |
 | `title` / `desc` | 同名 |
 | `author` / `author_id` | `user.nickName` / `user.userId` |
 | `published` | `time`（毫秒时间戳，东八区） |
@@ -68,6 +70,9 @@ python3 xhs_note.py --url '<带 xsec_token 的链接>'
 3. `ocr`：逐张调 Ollama `qwen3-vl:32b-instruct`，提示词要求逐字转写、保留层级、
    不概括、看不清用 `[?]`。结果存 `ocr/001.txt…`，同时写回 `note.json.ocr`。
 4. 产物：`~/.cache/tome-video/<slug>-<hash>/note.json`。
+
+组装笔记时：frontmatter 的 `source` 用 `canonical_url`，`share_url` 存
+`source_url`（带 token，短期可匿名打开）。这样 token 过期后笔记仍能定位到原帖。
 
 `--no-ocr` 只取图；`--meta-only` 只解析元数据；`--max-images N` 限制下载张数。
 

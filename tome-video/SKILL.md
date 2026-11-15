@@ -61,7 +61,7 @@ OCR 用本地 `qwen3-vl:32b-instruct` 逐字转写，约 10–20s/张；`--no-oc
 
 ```markdown
 ---
-title / source / author / published / created / platform / stats(可选)
+title / source(canonical) / share_url(可选，带 token) / author / published / created / platform / stats(可选)
 tags: [clippings, video]
 ---
 # 标题
@@ -92,7 +92,7 @@ tags: [clippings, video]
 
 ```markdown
 ---
-title / source / author / published / created / platform / stats / tags
+title / source(canonical) / share_url(可选，带 token) / author / published / created / platform / stats / tags
 tags: [clippings, xhs, image]
 ---
 # 标题
@@ -131,6 +131,7 @@ tags: [clippings, xhs, image]
 - 口播全文逐字保留（whisper 原文，不改写），OCR 原文逐字保留（不改写、不补写），提炼只放在核心要点。
 - 图文笔记按原图顺序，不要漏图；标题里的数字、榜单、对比项要对图核一遍。
 - 视频号 / 小红书的 `stats`（点赞/收藏/评论/转发）写进 frontmatter——这是选题素材数据，别丢。
+- `source` 存不带 `xsec_token` 的 canonical 链接（长期可溯源），带 token 的分享链接另存 `share_url`；token 过期不影响笔记本身。
 
 ## 依赖
 

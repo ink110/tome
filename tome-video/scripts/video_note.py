@@ -61,11 +61,16 @@ def download(url: str, workdir: Path) -> dict:
     info = json.loads((workdir / "source.info.json").read_text())
     vids = list(workdir.glob("source.*"))
     video = next(p for p in vids if p.suffix != ".json")
+    canonical = ""
+    if info.get("extractor_key") == "XiaoHongShu" and info.get("display_id"):
+        # 分享链接里的 xsec_token 会过期；长期引用用不带 token 的 canonical
+        canonical = f"https://www.xiaohongshu.com/explore/{info['display_id']}"
     return {"video": str(video), "meta": {
         "title": info.get("title") or "",
         "author": info.get("uploader") or info.get("channel") or "",
         "description": info.get("description") or "",
         "source_url": url,
+        "canonical_url": canonical or url,
         "platform": info.get("extractor_key") or "",
         "duration": info.get("duration"),
         "webpage_url": info.get("webpage_url") or url,
