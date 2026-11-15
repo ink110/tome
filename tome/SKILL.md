@@ -1,6 +1,6 @@
 ---
 name: tome
-description: 公开资料整理成书的中枢技能（CORE）。当用户说「把这些公开资料整理成书」「把这个人做成书」「从 B站 / 公众号采集到成书」「公开资料成书」「tome」时使用。tome 先判断阶段，再调度 tome-bili / tome-wechat / tome-portrait / tome-spread / tome-book；不跳过采集与核验直接写书。
+description: 公开资料整理成书的中枢技能（CORE）。当用户说「把这些公开资料整理成书」「把这个人做成书」「从 B站 / 公众号采集到成书」「公开资料成书」「tome」时使用。tome 先判断阶段，再调度 tome-bili / tome-wechat / tome-video / tome-portrait / tome-spread / tome-book；不跳过采集与核验直接写书。
 ---
 
 # tome · 公开资料成书中枢
@@ -11,9 +11,10 @@ description: 公开资料整理成书的中枢技能（CORE）。当用户说「
 
 ```text
 公开资料
-  ├─ B站   → tome-bili   ─┐
-  └─ 微信  → tome-wechat ─┤
-                           ↓
+  ├─ B站          → tome-bili   ─┐
+  ├─ 微信         → tome-wechat ─┤
+  └─ 小红书/视频号 → tome-video  ─┘
+                                  ↓
                      tome-portrait  人物解构 / 核验 / 画像
                            ↓
                      tome-spread    传播复盘（可选）
@@ -42,12 +43,13 @@ python3 ~/.claude/skills/tome/scripts/doctor.py   # 检查 pandoc / Chrome / coo
 | --- | --- | --- |
 | 给 B站链接 / 要字幕 / 要播放数据 | `tome-bili` | 其余 |
 | 给公众号文章 / 专辑 / 博主列表 | `tome-wechat` | 其余 |
+| 给小红书图文/视频、视频号链接 | `tome-video` | 其余 |
 | 要解构一个人 / 做画像 / 做核验 | `tome-portrait` | 采集类（资料已在项目里） |
 | 要传播复盘 / 找选题 / 拆爆款 | `tome-spread` | 采集类 |
 | 已有 md，要合并成书 / 出 epub | `tome-book` | 采集、画像 |
 | 从零做一本人物书 | `tome-portrait`（它会按步骤调用其他环） | 一次加载全部 |
 
-完整人物书顺序：`tome-bili` / `tome-wechat` → `tome-portrait` → `tome-spread` → `tome-book`。G1/G2/G3 三个人工闸门在 `tome-portrait` 里，中枢不重复问。
+完整人物书顺序：`tome-bili` / `tome-wechat` / `tome-video` → `tome-portrait` → `tome-spread` → `tome-book`。G1/G2/G3 三个人工闸门在 `tome-portrait` 里，中枢不重复问。
 
 ## 目录与交接物
 
@@ -110,6 +112,7 @@ python3 ~/.claude/skills/tome-book/scripts/build_book.py --project "<项目>" ..
 | 第一次用、配模型 / 配信息源 / 拿 cookie | `tome/references/setup.md` |
 | B站字幕 / 合集 / 播放数据 | `tome-bili` |
 | 公众号单篇 / 专辑 / 账号列表 / 阅读卡片 | `tome-wechat` |
+| 小红书图文 / 小红书视频 / 视频号 / 本地视频转图文笔记 | `tome-video` |
 | 人物画像、核验表、G1/G2/G3、成书流程 | `tome-portrait` |
 | 无互动数据时的传播筛选 | `tome-spread/references/selection.md` 第八节 |
 | 微信语料成书 staging / 转义 / `--config` | `tome-book/references/wechat-book.md` |

@@ -10,7 +10,7 @@
 - 小红书图文笔记：`xhs_note.py` 用移动端 SSR 解析元数据、按原顺序取图、qwen3-vl 逐字 OCR；视频笔记自动转交 `video_note.py`。
 - 视频号元数据抓取（`sph_meta.js`）：标题、作者、发布时间、点赞/收藏/转发/评论。
 - 补齐 `tome-video` 的 `references/xhs.md`、`references/pipeline.md`、`references/sph-capture.md`。
-- `install.sh` 和 README 登记 `tome-video`。
+- `install.sh` 和 README 登记 `tome-video`；`tome` 中枢增加小红书 / 视频号 / 本地视频的采集路由。
 - `tome-wechat` 增加「文章内视频 → tome-video」的交接说明，视频转写不再标记为未实现。
 
 ### 修复
