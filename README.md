@@ -76,8 +76,10 @@ git clone https://github.com/ink110/tome.git ~/tome
 cd ~/tome && ./install.sh
 ```
 
-`install.sh` 会把 6 个技能软链到 `~/.claude/skills/`，之后 `git pull` 就能更新。
-如果目标已存在，它会先备份再替换；不想软链也可以手动 `cp -R`。
+`install.sh` 会把 6 个技能软链到 `~/.claude/skills/`，之后 `cd ~/tome && git pull` 就能更新，
+开新会话即生效。目标已存在时会先备份再替换；想复制一份而不是软链，加 `--copy`。
+
+> 技能在会话启动时发现，安装完记得开一个新会话。
 
 **2. 配置**
 
