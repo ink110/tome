@@ -195,6 +195,9 @@ def ocr_images(paths: list, outdir: Path) -> dict:
             continue
         t0 = time.time()
         text = ocr_one(p)
+        # 视觉模型偶尔会把结果包在 ``` 围栏里，写进笔记前剥掉
+        text = re.sub(r'^```[^\n]*\n', '', text)
+        text = re.sub(r'\n```\s*$', '', text).strip()
         dst.write_text(text, encoding="utf-8")
         result[Path(p).name] = text
         print(f"  [ocr {i}/{len(paths)}] {dst.name} {len(text)} 字 {time.time()-t0:.0f}s", flush=True)
