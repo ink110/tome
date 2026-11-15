@@ -1,6 +1,6 @@
 ---
 name: tome-wechat
-description: 抓取微信公众号文章 / 专辑 / 博主文章列表（文字 + 图片/GIF/视频）生成 Markdown 笔记，媒体存项目 assets/（可选进 Eagle）；可用 Claude、在线 API 或本地模型生成阅读卡片、标签与去重报告。当用户给 mp.weixin.qq.com 文章链接、appmsgalbum 专辑链接，或说「爬这篇文章」「转存公众号」「抓这个专辑/合集」「批量抓这个博主」「账号列表」「AI 摘要」「阅读卡片」「提炼」「打标签」「去重」「文章存进知识库」时使用。
+description: 抓取微信公众号**专辑 / 博主文章列表 / 批量**（文字 + 图片/GIF/视频）生成 Markdown 笔记，媒体存项目 assets/（可选进 Eagle）；可用 Claude、在线 API 或本地模型生成阅读卡片、标签与去重报告。当用户给 appmsgalbum 专辑链接，或说「抓这个专辑/合集」「批量抓这个博主」「账号列表」「AI 摘要」「阅读卡片」「提炼」「打标签」「去重」时使用。**单篇文章请优先用 tome-clip。**
 ---
 
 # tome-wechat · 微信文章 / 专辑 → Markdown
