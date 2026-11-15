@@ -1,5 +1,7 @@
 # tome-video 流水线参考
 
+> 踩坑总表见 [lessons.md](lessons.md)。
+
 脚本：`scripts/video_note.py`。只做机器活（下载 / 转写 / 抽帧 / 视觉描述 / 对齐），
 不写 Obsidian 笔记；笔记由 Claude 读 `work.json` 后组装（见 SKILL.md）。
 

@@ -162,6 +162,7 @@ tags: [clippings, xhs, image]
 
 ## 参考（需要时加载）
 
+- [references/lessons.md](references/lessons.md) — 踩坑与决策记录：xsec_token、图文/视频判断、稳定帧、图注对齐、口播分段、为什么单篇采集只留一个入口
 - [references/xhs.md](references/xhs.md) — 小红书 xsec_token、移动端 SSR 字段、note.json 结构、图文 OCR 与排错
 - [references/pipeline.md](references/pipeline.md) — 视频脚本参数全集、work.json 结构、各阶段耗时实测、常见报错
 - [references/sph-capture.md](references/sph-capture.md) — 视频号为什么下不了、sph_meta.js 原理、手动投送的两种方式

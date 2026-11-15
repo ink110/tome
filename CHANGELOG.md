@@ -11,6 +11,7 @@
 - 小红书笔记同时保留 canonical 链接和带 `xsec_token` 的分享链接，token 过期后仍可溯源。
 - 视频号元数据抓取（`sph_meta.js`）：标题、作者、发布时间、点赞/收藏/转发/评论。
 - 补齐 `tome-video` 的 `references/xhs.md`、`references/pipeline.md`、`references/sph-capture.md`。
+- 新增 `references/lessons.md`：沉淀 xsec_token、图文/视频判断、稳定帧、图注对齐、口播分段和单篇采集入口的踩坑与决策记录。
 - `install.sh` 和 README 登记 `tome-video`；`tome` 中枢增加小红书 / 视频号 / 本地视频的采集路由。
 - `tome-wechat` 增加「文章内视频 → tome-video」的交接说明，视频转写不再标记为未实现。
 

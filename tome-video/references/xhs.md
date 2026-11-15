@@ -1,5 +1,7 @@
 # 小红书图文 / 视频采集参考
 
+> 踩坑总表见 [lessons.md](lessons.md)。
+
 脚本：`scripts/xhs_note.py`（图文 + 视频入口）和 `scripts/video_note.py`（视频流水线）。
 
 ## 链接与 xsec_token
