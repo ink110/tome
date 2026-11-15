@@ -92,8 +92,9 @@ def count_references(md_files):
 def _media_names(text):
     import re
     names = []
-    names += re.findall(r"!\[\[eagle-cache/([^\]|#]+)", text)
-    names += re.findall(r"\]\(eagle-cache/([^)\s]+)", text)
+    for prefix in MEDIA_DIR_NAMES:
+        names += re.findall(rf"!\[\[{prefix}/([^\]|#]+)", text)
+        names += re.findall(rf"\]\({prefix}/([^)\s]+)", text)
     names += re.findall(r"\[\[([^\]|#]+\.(?:png|jpe?g|gif|webp|mp4|mov|m4a|mp3))\]\]", text)
     return names
 
@@ -109,14 +110,16 @@ def backup_markdown(vault, md_files):
 
 def dedupe_obsidian(vault, apply):
     cache_dirs = find_cache_dirs(vault)
-    media = []
-    for d in cache_dirs:
-        for dp, _, fn in os.walk(d):
+    # 只在同一个媒体目录内去重：assets/ 是相对路径，跨项目合并会断链
+    groups = []
+    for cache_dir in cache_dirs:
+        media = []
+        for dp, _, fn in os.walk(cache_dir):
             media += [os.path.join(dp, f) for f in fn if not f.startswith(".")]
+        groups += group_duplicates(media)
     md_files = [f for f in glob.glob(os.path.join(vault, "**", "*.md"), recursive=True)
-                if "/eagle-cache/" not in f]
+                if not any(f"/{name}/" in f for name in MEDIA_DIR_NAMES)]
     ref = count_references(md_files)
-    groups = group_duplicates(media)
 
     plan = []
     for g in groups:
@@ -134,12 +137,13 @@ def dedupe_obsidian(vault, apply):
     dup_names = {os.path.basename(d) for _, dups in plan for d in dups}
     for canon, dups in plan:
         cname = os.path.basename(canon)
+        prefix = os.path.basename(os.path.dirname(canon))
         for dup in dups:
             dname = os.path.basename(dup)
             for f in md_files:
                 s = open(f, encoding="utf-8", errors="ignore").read()
                 orig = s
-                s = s.replace(f"eagle-cache/{dname}", f"eagle-cache/{cname}")
+                s = s.replace(f"{prefix}/{dname}", f"{prefix}/{cname}")
                 s = s.replace(f"[[{dname}]]", f"[[{cname}]]")
                 s = s.replace(f"[[{dname}|", f"[[{cname}|")
                 if s != orig:

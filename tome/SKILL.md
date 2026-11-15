@@ -75,8 +75,8 @@ python3 ~/.claude/skills/tome/scripts/doctor.py   # 检查 pandoc / Chrome / coo
 ## 常用入口
 
 ```bash
-# 新人物项目
-python3 ~/.claude/skills/tome-portrait/scripts/new_project.py ...
+# 新人物项目（--root 不填就用配置里的信息源根目录）
+python3 ~/.claude/skills/tome-portrait/scripts/new_project.py --person "<人物>"
 
 # B站采集（先 raw-only）
 python3 ~/.claude/skills/tome-bili/crawl_collection.py "<BV>" --out "<项目>/00-收集" --raw-only
