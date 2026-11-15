@@ -2,6 +2,20 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。
 
+## [Unreleased]
+
+### 新增
+
+- `tome-video` 技能：小红书视频 / 微信视频号 / 本地视频 → 口播转写 + 场景抽帧 + 本地视觉描述 + 时间对齐，输出可组装成 Obsidian 图文笔记的素材包。
+- 视频号元数据抓取（`sph_meta.js`）：标题、作者、发布时间、点赞/收藏/转发/评论。
+- 补齐 `tome-video` 的 `references/pipeline.md`、`references/sph-capture.md`。
+- `install.sh` 和 README 登记 `tome-video`。
+
+### 已知边界
+
+- 视频号视频流无法匿名下载，mp4 需手动投送。
+- 小红书**图文笔记**（无视频）尚未支持。
+
 ## [1.0.2] - 2026-11-15
 
 ### 变更

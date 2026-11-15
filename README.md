@@ -54,8 +54,10 @@ tome 把这条路径自动化：
 flowchart LR
     A[B站合集] --> C[tome-bili]
     B[公众号文章] --> D[tome-wechat]
+    V[小红书 / 视频号视频] --> W[tome-video]
     C --> E[00-收集<br/>原文 + 清单]
     D --> E
+    W --> E
     E --> F[tome-portrait<br/>画像 + 核验]
     F --> G[tome-spread<br/>传播复盘]
     G --> H[tome-book<br/>md + EPUB]
@@ -65,6 +67,7 @@ flowchart LR
 
 - 只要字幕和播放数据 → 用 `tome-bili`
 - 只想把公众号存进知识库 → 用 `tome-wechat`
+- 小红书 / 视频号视频转成图文笔记 → 用 `tome-video`
 - 已有语料，只缺一本电子书 → 用 `tome-book`
 
 ## 快速开始
@@ -76,7 +79,7 @@ git clone https://github.com/ink110/tome.git ~/tome
 cd ~/tome && ./install.sh
 ```
 
-`install.sh` 会把 6 个技能软链到 `~/.claude/skills/`，之后 `cd ~/tome && git pull` 就能更新，
+`install.sh` 会把 7 个技能软链到 `~/.claude/skills/`，之后 `cd ~/tome && git pull` 就能更新，
 开新会话即生效。目标已存在时会先备份再替换；想复制一份而不是软链，加 `--copy`。
 
 > 技能在会话启动时发现，安装完记得开一个新会话。
@@ -147,13 +150,14 @@ python3 ~/.claude/skills/tome/scripts/setup.py --vault ~/Documents/我的库
 公众号的图片 / GIF / 视频默认存到项目内的 `assets/`，用标准 Markdown 引用，**不需要 Eagle**。
 如果你本来就用 Eagle 管理素材，可以在配置里打开，它会额外上传一份并保留溯源链接。
 
-## 六个技能
+## 七个技能
 
 | 技能 | 角色 | 做什么 |
 | --- | --- | --- |
 | `tome` | 中枢 | 判断你在哪一步，只加载对应的子技能；不直接采集或排版 |
 | `tome-bili` | 采集 | 单视频 / 多分 P / 合集批量 → 字幕、口播稿、播放数据、清单 |
 | `tome-wechat` | 采集 | 单篇 / 专辑 / 账号列表 → 笔记 + 媒体 + 阅读卡片 + 去重 |
+| `tome-video` | 采集 | 小红书视频 / 视频号 / 本地视频 → 口播转写 + 关键帧 + 图文笔记 |
 | `tome-portrait` | 解构 | 来源地图 → 分片调研 → 六类画像 → 核验表 → 三次人工闸门 |
 | `tome-spread` | 传播 | 筛出真正传播广的内容，输出案例卡、选题清单、结构模板 |
 | `tome-book` | 成书 | 合并 Markdown + 构建 EPUB，表格转卡片、口播分段、目录校验 |
@@ -209,6 +213,7 @@ python3 ~/.claude/skills/tome-book/scripts/build_book.py \
 tome/                中枢：阶段判断、调度、交接物约定
 tome-bili/           B 站采集脚本 + 解析参考
 tome-wechat/         公众号采集、阅读卡片、媒体去重
+tome-video/          小红书 / 视频号视频 → 口播 + 关键帧 → 图文笔记
 tome-portrait/       来源地图、画像规格、核验、项目初始化
 tome-spread/         传播筛选、案例卡、选题模板
 tome-book/           EPUB 构建器、校验器、封面生成、排版规则
@@ -224,8 +229,10 @@ docs/images/         README 用图
 | Claude Code | 运行技能 | 是 |
 | pandoc 3.x | EPUB 构建（自动探测） | 成书时 |
 | Google Chrome | 自动生成封面 | 可选 |
-| Ollama | 本地模型档位 | 可选 |
-| ffmpeg + faster-whisper | 无字幕视频转写 | 可选 |
+| Ollama | 本地模型档位；`tome-video` 的画面描述用 `qwen3-vl` | 可选 |
+| ffmpeg + mlx_whisper | 视频抽帧与口播转写（Apple Silicon） | 视频转笔记时 |
+| yt-dlp | 下载小红书等站点视频 | 视频转笔记时 |
+| Node + puppeteer-core | 抓视频号元数据 | 仅视频号 |
 | Eagle | 素材管理 | 可选 |
 
 `doctor.py` 会逐项告诉你缺什么。
