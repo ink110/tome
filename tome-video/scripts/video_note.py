@@ -106,7 +106,7 @@ def extract_frames(video: str, duration: float, frames_dir: Path) -> list:
     """场景切换检测抽帧，返回 [{file, t}]。帧太少自动降低阈值重试。"""
     ensure_dir(frames_dir)
     for thresh in (SCENE_THRESH, 0.25, 0.15):
-        for p in frames_dir.glob("f*.jpg"):
+        for p in frames_dir.glob("*.jpg"):
             p.unlink()
         cmd = [FFMPEG, "-hide_banner", "-i", video,
                "-vf", f"select='gt(scene,{thresh})+eq(n,0)',showinfo,scale=960:-2",
@@ -129,13 +129,14 @@ def extract_frames(video: str, duration: float, frames_dir: Path) -> list:
             break
     # 兜底：纯说话视频几乎没有场景切换 → 均匀采样
     if len(frames) < 4 and duration > 0:
-        for p in frames_dir.glob("f*.jpg"):
+        for p in frames_dir.glob("*.jpg"):
             p.unlink()
         n = min(12, max(4, int(duration // 30)))
         frames = []
         for i in range(n):
             t = duration * (i + 0.5) / n
-            fp = frames_dir / f"f{i:04d}.jpg"
+            # 从 f0001 开始编号，避免后面重命名时和 f0000 互相覆盖
+            fp = frames_dir / f"f{i + 1:04d}.jpg"
             sh([FFMPEG, "-hide_banner", "-ss", f"{t:.2f}", "-i", video,
                 "-frames:v", "1", "-vf", "scale=960:-2", "-q:v", "3", str(fp), "-y"])
             if fp.exists():
@@ -148,13 +149,18 @@ def extract_frames(video: str, duration: float, frames_dir: Path) -> list:
         for d in drop:
             Path(d).unlink(missing_ok=True)
         frames = keep
-    # 重命名连续编号，避免 obsidian 里乱序
-    final = []
+    # 重命名连续编号，避免 obsidian 里乱序。
+    # 两阶段重命名：a→b 时 b 可能还是下一帧的源文件，直接 rename 会互相覆盖。
+    staged = []
     for i, fr in enumerate(frames, 1):
+        tmp = frames_dir / f"_tmp{i:04d}.jpg"
+        Path(fr["file"]).rename(tmp)
+        staged.append((tmp, fr["t"]))
+    final = []
+    for i, (tmp, t) in enumerate(staged, 1):
         nf = frames_dir / f"f{i:04d}.jpg"
-        if Path(fr["file"]) != nf:
-            Path(fr["file"]).rename(nf)
-        final.append({"file": str(nf), "t": fr["t"]})
+        tmp.rename(nf)
+        final.append({"file": str(nf), "t": t})
     return final
 
 

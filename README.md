@@ -54,7 +54,7 @@ tome 把这条路径自动化：
 flowchart LR
     A[B站合集] --> C[tome-bili]
     B[公众号文章] --> D[tome-wechat]
-    V[小红书 / 视频号视频] --> W[tome-video]
+    V[小红书图文 / 视频<br/>视频号] --> W[tome-video]
     C --> E[00-收集<br/>原文 + 清单]
     D --> E
     W --> E
@@ -157,7 +157,7 @@ python3 ~/.claude/skills/tome/scripts/setup.py --vault ~/Documents/我的库
 | `tome` | 中枢 | 判断你在哪一步，只加载对应的子技能；不直接采集或排版 |
 | `tome-bili` | 采集 | 单视频 / 多分 P / 合集批量 → 字幕、口播稿、播放数据、清单 |
 | `tome-wechat` | 采集 | 单篇 / 专辑 / 账号列表 → 笔记 + 媒体 + 阅读卡片 + 去重 |
-| `tome-video` | 采集 | 小红书视频 / 视频号 / 本地视频 → 口播转写 + 关键帧 + 图文笔记 |
+| `tome-video` | 采集 | 小红书图文/视频 / 视频号 / 本地视频 → 取图 OCR 或口播转写 + 关键帧 → 图文笔记 |
 | `tome-portrait` | 解构 | 来源地图 → 分片调研 → 六类画像 → 核验表 → 三次人工闸门 |
 | `tome-spread` | 传播 | 筛出真正传播广的内容，输出案例卡、选题清单、结构模板 |
 | `tome-book` | 成书 | 合并 Markdown + 构建 EPUB，表格转卡片、口播分段、目录校验 |
@@ -229,7 +229,7 @@ docs/images/         README 用图
 | Claude Code | 运行技能 | 是 |
 | pandoc 3.x | EPUB 构建（自动探测） | 成书时 |
 | Google Chrome | 自动生成封面 | 可选 |
-| Ollama | 本地模型档位；`tome-video` 的画面描述用 `qwen3-vl` | 可选 |
+| Ollama | 本地模型档位；`tome-video` 的画面描述和图文 OCR 用 `qwen3-vl` | 可选 |
 | ffmpeg + mlx_whisper | 视频抽帧与口播转写（Apple Silicon） | 视频转笔记时 |
 | yt-dlp | 下载小红书等站点视频 | 视频转笔记时 |
 | Node + puppeteer-core | 抓视频号元数据 | 仅视频号 |

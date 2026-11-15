@@ -7,10 +7,15 @@
 ### 新增
 
 - `tome-video` 技能：小红书视频 / 微信视频号 / 本地视频 → 口播转写 + 场景抽帧 + 本地视觉描述 + 时间对齐，输出可组装成 Obsidian 图文笔记的素材包。
+- 小红书图文笔记：`xhs_note.py` 用移动端 SSR 解析元数据、按原顺序取图、qwen3-vl 逐字 OCR；视频笔记自动转交 `video_note.py`。
 - 视频号元数据抓取（`sph_meta.js`）：标题、作者、发布时间、点赞/收藏/转发/评论。
-- 补齐 `tome-video` 的 `references/pipeline.md`、`references/sph-capture.md`。
+- 补齐 `tome-video` 的 `references/xhs.md`、`references/pipeline.md`、`references/sph-capture.md`。
 - `install.sh` 和 README 登记 `tome-video`。
 - `tome-wechat` 增加「文章内视频 → tome-video」的交接说明，视频转写不再标记为未实现。
+
+### 修复
+
+- 口播型视频走均匀采样兜底时，帧文件从 `f0000` 开始编号，后续重命名互相覆盖，最终只剩 1 帧。改为从 `f0001` 开始并两阶段重命名。
 
 ### 已知边界
 

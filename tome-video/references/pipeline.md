@@ -89,7 +89,7 @@ python3 video_note.py --file <本地视频>        # 视频号投送 / 本地文
 
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
-| `No video formats found` | 链接是小红书**图文笔记**，没有视频 | 本技能不处理图文；走图片 OCR 流程 |
+| `No video formats found` | 链接是小红书**图文笔记**，没有视频 | 改用 `xhs_note.py --url <链接>`（取图 + OCR） |
 | 小红书 403 / 下载失败 | `xsec_token` 过期 | 在 App 里重新分享，拿新链接 |
 | `视频号链接拿不到视频流` | 匿名接口只返回元数据 | 先 `node sph_meta.js`，再手动投送 mp4 + `--sph-meta` |
 | `转写结果为空` | 纯 BGM / 无人声 | 换有口播的视频，或改用抽帧 + OCR |
