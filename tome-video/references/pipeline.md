@@ -69,21 +69,22 @@ python3 video_note.py --file <本地视频>        # 视频号投送 / 本地文
 }
 ```
 
-另有 `transcript.txt`（整段口播纯文本）和 `frames/`（已按时间重命名为 `f0001.jpg` 起）。
+另有 `transcript.txt`（整段口播纯文本）、`transcript_paragraphs.txt`（按主题词/转折词切好的自然段）
+和 `frames/`（已按时间重命名为 `f0001.jpg` 起）。
 
 ## 各阶段行为
 
 - **download**：`yt-dlp --write-info-json`。小红书链接必须带 `xsec_token`（App 里「分享 → 复制链接」会带）；过期 token 返回 403。
-- **transcribe**：`mlx_whisper --language zh --output-format json`，保留原始分段时间戳；结果为空（纯 BGM 无人声）直接退出。
-- **frames**：ffmpeg `select='gt(scene,阈值)'`，阈值 0.35 起步，帧数 <8 时依次降到 0.25、0.15；帧间隔 <2s 的丢弃。场景切换太少（纯口播）时改为均匀采样 `min(12, max(4, 时长//30))` 帧。最终上限 40 帧（`--max-frames`）。
+- **transcribe**：`mlx_whisper --language zh --output-format json`，保留原始分段时间戳；结果为空（纯 BGM 无人声）直接退出。同时按主题词/转折词切自然段，写 `transcript_paragraphs.txt`。
+- **frames**：不再按时均匀采样。先 1fps 取灰度小图，只哈希画面上方 68%（避开右下角人脸），用 dHash 检测换页；等画面连续两帧稳定后才取该帧，避免淡入/动画中间态。换页阈值 `HASH_THRESH=90`、稳定阈值 `HASH_STABLE=16`。检测失败或不足 4 帧才退回均匀采样。最终上限 40 帧（`--max-frames`）。
 - **vision**：逐帧调 Ollama，要求幻灯片 / 图表 / 界面文字**逐字提取**，单帧超时 300s；失败不中断，`vl` 写成错误说明。
 - **align**：每帧取 `[t-8s, t+4s]` 窗口内的口播，供 Claude 写有信息增量的图注。
 
 ## 耗时参考
 
-- 19 分钟视频转写约 3–5 分钟（M 系列芯片，large-v3-turbo）。
-- 视觉描述约 10 秒 / 帧，40 帧约 6–7 分钟。
-- 端到端主要耗时在 transcribe 和 vision；两者都可断点续跑。
+- 19 分钟视频转写约 30–60 秒（M 系列芯片，large-v3-turbo）。
+- 稳定帧检测（1fps + dHash）约 1–2 分钟；40 帧视觉描述约 6–7 分钟。
+- 端到端主要耗时在 vision；transcribe 和 frames 都很快。
 
 ## 常见报错
 
@@ -95,4 +96,6 @@ python3 video_note.py --file <本地视频>        # 视频号投送 / 本地文
 | `转写结果为空` | 纯 BGM / 无人声 | 换有口播的视频，或改用抽帧 + OCR |
 | `mlx_whisper 报错` | 路径或模型不存在 | 按上表检查 `MLX_WHISPER` / `WHISPER_MODEL` |
 | 视觉描述全是 `(视觉描述失败)` | Ollama 没启动 / 模型没拉 | `ollama serve`、`ollama list` |
-| 帧太少或重复 | 场景检测阈值不合适 | 调 `SCENE_THRESH`，或直接用均匀采样兜底 |
+| 帧太少或重复 | 稳定帧检测阈值不合适 | 调 `HASH_THRESH` / `HASH_STABLE`，或降低 `SAMPLE_SEC` |
+| 帧是空白 / 淡入中间态 | 稳定帧检测把动画停顿当成稳定 | 提高 `HASH_STABLE` 严格度；组装时按 `vl` 描述丢弃无文字帧 |
+| 图注和图对不上 | 用了方法总览代替具体画面 | 先用 OCR/VL 读出该帧标题，再按画面元素写图注；对不上就换帧 |

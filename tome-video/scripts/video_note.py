@@ -24,9 +24,15 @@ FFPROBE = FFMPEG.replace("ffmpeg", "ffprobe")
 OLLAMA = "http://localhost:11434"
 VL_MODEL = "qwen3-vl:32b-instruct"
 
-SCENE_THRESH = 0.35      # 场景切换阈值；帧太少会自动调低
+SCENE_THRESH = 0.35      # 旧场景检测阈值（保留兼容）
 MIN_FRAME_GAP = 2.0      # 两帧最小间隔（秒）
 MAX_FRAMES = 40          # 关键帧上限（控制视觉模型耗时）
+SAMPLE_SEC = 1.0         # 稳定帧检测的采样间隔
+HASH_W, HASH_H = 33, 16  # dHash 尺寸（528 bit）
+HASH_CROP_RATIO = 0.68   # 只哈希画面上方 68%，避开右下角人脸
+HASH_THRESH = 90         # 判定「换页」的汉明距离
+HASH_STABLE = 16         # 相邻采样判定「稳定」的汉明距离
+HASH_MAX_WAIT = 6        # 换页后最多等几个采样找稳定帧
 VL_PROMPT = (
     "这是视频里截出的一帧。请用中文描述画面内容，要求："
     "1) 如果是幻灯片/图表/界面/文字板，逐字提取标题和要点文字（尽量完整，这是最重要的）；"
@@ -105,68 +111,150 @@ def transcribe(video: str, workdir: Path) -> list:
     return segs
 
 
+TOPIC_MARKERS = (
+    "首先", "第一个是", "第二个是", "第三个是", "第四个是", "第五个是",
+    "第六个是", "第七个是", "第八个是", "接下来", "下一个是", "最后是",
+    "最后如果", "总结", "以上就是",
+)
+SUB_MARKERS = (
+    "它的优势", "它的核心优势", "核心优势", "优势就是", "缺点也很明显",
+    "但劣势", "它的劣势", "对于AI", "对AI", "这种方案适合", "它十分适合",
+    "这套方法是和", "解决办法", "它的本质", "它的核心理念", "这种方式",
+    "这套方案", "它的缺陷", "这种方案的优势",
+)
+STRONG_CUTS = ("但是", "所以", "而且", "因为", "如果", "当", "那么",
+               "另外", "同时", "不过", "于是")
+
+
+def paragraphize(text: str, min_len: int = 80, max_len: int = 260) -> list:
+    """把无标点的 ASR 全文按主题词/转折词切成可读段落，不改原文。"""
+    markers = [(m, True) for m in TOPIC_MARKERS] + [(m, False) for m in SUB_MARKERS]
+    paras, start, i = [], 0, 0
+    while i < len(text):
+        hits = [(text.find(m, i), topic) for m, topic in markers]
+        hits = [h for h in hits if h[0] >= 0]
+        if not hits:
+            break
+        pos, topic = min(hits, key=lambda x: x[0])
+        if pos > start and (topic or pos - start >= min_len):
+            paras.append(text[start:pos].strip())
+            start = pos
+            i = pos + 1
+        else:
+            i = pos + 1
+    if start < len(text):
+        paras.append(text[start:].strip())
+    # 长段落再按强转折词切，目标每段 < max_len
+    out = []
+    for para in paras:
+        while len(para) > max_len:
+            cut = -1
+            for w in STRONG_CUTS:
+                j = para.find(w, 100)
+                if j > 0 and (cut < 0 or j < cut):
+                    cut = j
+            if cut < 0:
+                break
+            out.append(para[:cut].strip())
+            para = para[cut:].strip()
+        out.append(para)
+    # 段尾的转折词属于下一段，移过去
+    out = [p for p in out if p]
+    for i in range(len(out) - 1):
+        for tail in ("但", "所以", "而且", "因为"):
+            if out[i].endswith(tail):
+                out[i] = out[i][:-len(tail)].strip()
+                out[i + 1] = tail + out[i + 1]
+                break
+    return [p for p in out if p]
+
+
 # ---------- 3. 关键帧抽取 ----------
 
+def probe_size(video: str):
+    r = sh([FFPROBE, "-v", "error", "-select_streams", "v:0",
+            "-show_entries", "stream=width,height", "-of", "csv=p=0:s=x", video])
+    try:
+        w, h = r.stdout.strip().split("x")[:2]
+        return int(w), int(h)
+    except Exception:
+        return 0, 0
+
+
+def dhash(buf: bytes, width: int, height: int) -> int:
+    value = 0
+    for y in range(height):
+        row = buf[y * width:(y + 1) * width]
+        for x in range(width - 1):
+            value = (value << 1) | (1 if row[x] > row[x + 1] else 0)
+    return value
+
+
+def hamming(a: int, b: int) -> int:
+    return bin(a ^ b).count("1")
+
+
+def hash_samples(video: str) -> list:
+    """1fps 取灰度小图，只哈希上方 68%，避开右下角人脸。"""
+    w, h = probe_size(video)
+    crop_top = max(1, int(h * HASH_CROP_RATIO)) if h else 480
+    vf = (f"fps=1/{SAMPLE_SEC},crop=iw:{crop_top}:0:0,"
+          f"scale={HASH_W}:{HASH_H}:flags=area,format=gray")
+    # rawvideo 是二进制，不能走 sh() 的 text=True
+    r = subprocess.run([FFMPEG, "-hide_banner", "-loglevel", "error", "-i", video,
+                        "-an", "-vf", vf, "-f", "rawvideo", "-pix_fmt", "gray", "-"],
+                       capture_output=True)
+    size = HASH_W * HASH_H
+    return [r.stdout[i:i + size] for i in range(0, len(r.stdout) - size + 1, size)]
+
+
+def choose_stable(samples: list) -> list:
+    """换页后等到画面连续两帧稳定，再取该帧；返回采样下标。"""
+    if not samples:
+        return []
+    hashes = [dhash(b, HASH_W, HASH_H) for b in samples]
+    reps, chosen, cand = [0], [0], None
+    for i in range(1, len(hashes)):
+        d_rep = hamming(hashes[i], hashes[reps[-1]])
+        d_prev = hamming(hashes[i], hashes[i - 1])
+        if cand is None and d_rep > HASH_THRESH:
+            cand = i
+        if cand is not None:
+            if (i - cand >= 1 and d_prev <= HASH_STABLE) or (i - cand >= HASH_MAX_WAIT):
+                reps.append(i)
+                chosen.append(i)
+                cand = None
+    return chosen
+
+
 def extract_frames(video: str, duration: float, frames_dir: Path) -> list:
-    """场景切换检测抽帧，返回 [{file, t}]。帧太少自动降低阈值重试。"""
+    """稳定帧优先：1fps 采样 + dHash，避免抓到淡入/动画中间态。"""
     ensure_dir(frames_dir)
-    for thresh in (SCENE_THRESH, 0.25, 0.15):
-        for p in frames_dir.glob("*.jpg"):
-            p.unlink()
-        cmd = [FFMPEG, "-hide_banner", "-i", video,
-               "-vf", f"select='gt(scene,{thresh})+eq(n,0)',showinfo,scale=960:-2",
-               "-fps_mode", "vfr", "-q:v", "3", str(frames_dir / "f%04d.jpg"), "-y"]
-        r = sh(cmd)
-        # showinfo 里拿每帧 pts_time，与输出文件一一对应
-        times = [float(m) for m in re.findall(r"pts_time:([\d.]+)", r.stderr)]
-        files = sorted(frames_dir.glob("f*.jpg"))
-        frames = [{"file": str(f), "t": times[i] if i < len(times) else 0.0}
-                  for i, f in enumerate(files)]
-        # 去掉间隔太近的帧
-        kept, last = [], -1e9
-        for fr in frames:
-            if fr["t"] - last >= MIN_FRAME_GAP:
-                kept.append(fr); last = fr["t"]
-            else:
-                Path(fr["file"]).unlink(missing_ok=True)
-        frames = kept
-        if len(frames) >= 8 or thresh == 0.15:
-            break
-    # 兜底：纯说话视频几乎没有场景切换 → 均匀采样
-    if len(frames) < 4 and duration > 0:
-        for p in frames_dir.glob("*.jpg"):
-            p.unlink()
-        n = min(12, max(4, int(duration // 30)))
-        frames = []
-        for i in range(n):
-            t = duration * (i + 0.5) / n
-            # 从 f0001 开始编号，避免后面重命名时和 f0000 互相覆盖
-            fp = frames_dir / f"f{i + 1:04d}.jpg"
-            sh([FFMPEG, "-hide_banner", "-ss", f"{t:.2f}", "-i", video,
-                "-frames:v", "1", "-vf", "scale=960:-2", "-q:v", "3", str(fp), "-y"])
-            if fp.exists():
-                frames.append({"file": str(fp), "t": round(t, 2)})
-    # 超上限：均匀降采样
-    if len(frames) > MAX_FRAMES:
-        step = len(frames) / MAX_FRAMES
-        keep = [frames[int(i * step)] for i in range(MAX_FRAMES)]
-        drop = {f["file"] for f in frames} - {f["file"] for f in keep}
-        for d in drop:
-            Path(d).unlink(missing_ok=True)
-        frames = keep
-    # 重命名连续编号，避免 obsidian 里乱序。
-    # 两阶段重命名：a→b 时 b 可能还是下一帧的源文件，直接 rename 会互相覆盖。
-    staged = []
-    for i, fr in enumerate(frames, 1):
-        tmp = frames_dir / f"_tmp{i:04d}.jpg"
-        Path(fr["file"]).rename(tmp)
-        staged.append((tmp, fr["t"]))
-    final = []
-    for i, (tmp, t) in enumerate(staged, 1):
-        nf = frames_dir / f"f{i:04d}.jpg"
-        tmp.rename(nf)
-        final.append({"file": str(nf), "t": t})
-    return final
+    for p in frames_dir.glob("*.jpg"):
+        p.unlink()
+    times = []
+    try:
+        times = [round((i + 0.5) * SAMPLE_SEC, 2)
+                 for i in choose_stable(hash_samples(video))]
+        print(f"  [frames] 稳定帧候选 {len(times)} 个", flush=True)
+    except Exception as e:
+        print(f"  [frames] 稳定帧检测失败，转均匀采样：{e}", flush=True)
+    # 兜底：画面几乎不变，或稳定帧检测失败 → 均匀采样
+    if len(times) < 4 and duration > 0:
+        n = min(24, max(8, int(duration // 45)))
+        times = [round(duration * (i + 0.5) / n, 2) for i in range(n)]
+        print(f"  [frames] 均匀采样 {len(times)} 个", flush=True)
+    if len(times) > MAX_FRAMES:
+        step = len(times) / MAX_FRAMES
+        times = [times[int(i * step)] for i in range(MAX_FRAMES)]
+    frames = []
+    for i, t in enumerate(times, 1):
+        fp = frames_dir / f"f{i:04d}.jpg"
+        sh([FFMPEG, "-hide_banner", "-ss", f"{t:.2f}", "-i", video,
+            "-frames:v", "1", "-vf", "scale=960:-2", "-q:v", "3", str(fp), "-y"])
+        if fp.exists():
+            frames.append({"file": str(fp), "t": t})
+    return frames
 
 
 # ---------- 4. 视觉描述（本地多模态） ----------
@@ -266,7 +354,10 @@ def main():
         work_json.write_text(json.dumps(state, ensure_ascii=False, indent=1))
         full = "".join(s["text"] for s in state["segments"])
         (workdir / "transcript.txt").write_text(full)
-        print(f"[transcribe] {len(state['segments'])} 段, {len(full)} 字, {time.time()-t0:.0f}s")
+        paras = paragraphize(full)
+        (workdir / "transcript_paragraphs.txt").write_text("\n\n".join(paras))
+        print(f"[transcribe] {len(state['segments'])} 段, {len(full)} 字, "
+              f"{len(paras)} 个自然段, {time.time()-t0:.0f}s")
 
     # 3) frames
     if start <= 2:
