@@ -8,6 +8,9 @@ description: tome 采集环（单篇剪藏 → Obsidian 图文笔记）。给一
 核心思路：**一个入口，按链接自动分流**。`clip.py` 只做 URL 路由；重活调用现有脚本
 （`tome-wechat/wechat_article.py`、`xhs_note.py`、`sph_fetch.py`、`video_note.py`）；筛选、图注和笔记组装由 Claude 做。
 
+边界：`tome-clip` 只做**单篇**；`tome-wechat` 仍负责专辑 / 账号列表批量、AI 提炼、去重。
+单篇公众号文章由 `tome-clip` 路由给 `wechat_article.py`，两边共用 `media.eagle` 配置和 Eagle 文件夹约定。
+
 ```bash
 # 单篇统一入口
 python3 ~/.claude/skills/tome-clip/scripts/clip.py --url <链接> [--topic 专题] [--dry-run]
@@ -170,7 +173,17 @@ tags: [clippings, xhs, image]
    - 视频笔记 → `topics/<topic>/30-视频/<标题>.md`；帧图 → `topics/<topic>/30-视频/attachments/<slug>/fNNNN.jpg`（只复制入选帧）
    - 图文笔记 → `topics/<topic>/30-图文/<标题>.md`；原图 → `topics/<topic>/30-图文/attachments/<slug>/00X.jpg`
    - 更新 `topics/<topic>/index.md` 的 `<!-- tome-clip:start/end -->` 区块（没有就建，视频/图文分小节）。
-6. **汇报**：笔记路径、图片/帧数、OCR 字数或口播字数、耗时。若视频号是手动投送，提醒 ink 原始 mp4 还在 Downloads，可自行清理。
+6. **Eagle 上传（可选）**：若 `media.eagle.enabled` 为 true，把入选帧/原图传到 Eagle：
+   ```bash
+   # 视频：只传入选帧
+   python3 ~/.claude/skills/tome-clip/scripts/eagle_upload.py \
+       --workdir <workdir> --files f0007.jpg,f0012.jpg
+   # 图文：默认上传 note.json 的全部 local_images
+   python3 ~/.claude/skills/tome-clip/scripts/eagle_upload.py --workdir <workdir>
+   ```
+   然后在每张图下加一行 `[在 Eagle 查看](eagle://item/<ID>)`；`attachments/` 仍作为本地预览副本。
+   Eagle 配置与 `tome-wechat` 共用 `~/.config/tome/config.json` 的 `media.eagle`，Eagle 需运行在 41595。
+7. **汇报**：笔记路径、图片/帧数、OCR 字数或口播字数、Eagle 上传数量、耗时。若视频号是手动投送，提醒 ink 原始 mp4 还在 Downloads，可自行清理。
 
 ## 质量要求
 

@@ -82,6 +82,23 @@ python3 video_note.py --file <本地视频>        # 视频号投送 / 本地文
 - **vision**：逐帧调 Ollama，要求幻灯片 / 图表 / 界面文字**逐字提取**，单帧超时 300s；失败不中断，`vl` 写成错误说明。
 - **align**：每帧取 `[t-8s, t+4s]` 窗口内的口播，供 Claude 写有信息增量的图注。
 
+## Eagle 上传（可选）
+
+筛帧 / 取图完成后，把实际入笔记的图片传到 Eagle：
+
+```bash
+# 视频：只传入选帧
+python3 ~/.claude/skills/tome-clip/scripts/eagle_upload.py \
+  --workdir <workdir> --files f0007.jpg,f0012.jpg
+
+# 图文：默认上传 note.json 的全部 local_images
+python3 ~/.claude/skills/tome-clip/scripts/eagle_upload.py --workdir <workdir>
+```
+
+产物 `eagle_uploads.json` 记录 `file → item_id → eagle://item/...`；笔记里在每张图下加
+`[在 Eagle 查看](eagle://item/<ID>)`，`attachments/` 继续作为本地预览副本。配置与
+`tome-wechat` 共用 `~/.config/tome/config.json` 的 `media.eagle`，Eagle 需运行在 41595。
+
 ## 耗时参考
 
 - 19 分钟视频转写约 30–60 秒（M 系列芯片，large-v3-turbo）。
