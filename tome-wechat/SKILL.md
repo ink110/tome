@@ -1,11 +1,13 @@
 ---
 name: tome-wechat
-description: 抓取微信公众号文章 / 专辑 / 博主文章列表（文字 + 图片/GIF/视频）生成 Markdown 笔记，媒体存项目 assets/（可选进 Eagle）；可用 Claude、在线 API 或本地模型生成阅读卡片、标签与去重报告。当用户给 mp.weixin.qq.com 文章链接、appmsgalbum 专辑链接，或说「爬这篇文章」「转存公众号」「抓这个专辑/合集」「批量抓这个博主」「账号列表」「AI 摘要」「阅读卡片」「提炼」「打标签」「去重」「文章存进知识库」时使用。
+description: 抓取微信公众号**专辑 / 博主文章列表 / 批量**（文字 + 图片/GIF/视频）生成 Markdown 笔记，媒体存项目 assets/（可选进 Eagle）；可用 Claude、在线 API 或本地模型生成阅读卡片、标签与去重报告。当用户给 appmsgalbum 专辑链接，或说「抓这个专辑/合集」「批量抓这个博主」「账号列表」「AI 摘要」「阅读卡片」「提炼」「打标签」「去重」时使用。**单篇文章请优先用 tome-clip。**
 ---
 
 # tome-wechat · 微信文章 / 专辑 → Markdown
 
 两个模式：单篇；专辑 / 账号列表批量。批量永远**先枚举、判断专题、必要时问用户，再抓**。
+
+单篇剪藏优先走 `tome-clip`（自动识别公众号 / 小红书 / 视频号）；本技能保留单篇脚本，兼容直接调用和批量流程复用。
 
 配置（媒体存哪、用哪个模型）由 `~/.config/tome/config.json` 决定，见 `tome/references/setup.md`。
 
@@ -23,6 +25,22 @@ python3 ~/.claude/skills/tome-wechat/wechat_article.py --url <文章链接> \
 ### 图片消息（无正文纯图帖）
 
 单篇 exit 1「js_content 为空」但浏览器能打开 → 大概率是图片消息（纯图卡片）。处理：**解析 `picture_page_info_list` 取原图 → 下载进 assets → 视觉模型逐字 OCR → 图在上文字在下组装笔记**。完整流程见 [references/image-post.md](references/image-post.md)，不要当成「已删除」直接放弃。
+
+### 文章内视频 → 图文笔记
+
+`wechat_article.py` 已经会解析腾讯视频 iframe 的 `videoPageInfos`，取最高清 mp4 下载到 `assets/`（带 `Referer`），笔记里以 `![[assets/xxx.mp4]]` 引用。**抓取只到「拿到 mp4」，转写和图文笔记交给 `tome-clip`**：
+
+```bash
+python3 ~/.claude/skills/tome-clip/scripts/video_note.py \
+  --file "<专题>/assets/<视频文件>.mp4" \
+  --title "<文章标题>" --source-url "<文章链接>"
+```
+
+跑完后按 `tome-clip` 的组装规则产出 10–25 张关键帧 + 图注 + 口播全文，落到 `topics/<topic>/30-视频/`。注意：
+
+- **不要再拿文章 URL 重下一次**：本地 mp4 就是最高清流，重复请求可能 403。
+- 只在用户明确要「视频转笔记」时跑；转写 + 视觉描述耗时较长，批量抓取时不要自动触发。
+- 长讲座 / 圆桌录像不用 `tome-clip`，用 `obsidian-lecture-notes` 的 `video_prepare.py`（按幻灯片稳定帧和 OCR 优化）。
 
 ## 专辑 / 账号列表
 

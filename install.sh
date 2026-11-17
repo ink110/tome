@@ -12,7 +12,7 @@ set -euo pipefail
 
 REPO="$(cd "$(dirname "$0")" && pwd)"
 DEST="${CLAUDE_SKILLS_DIR:-$HOME/.claude/skills}"
-SKILLS=(tome tome-bili tome-wechat tome-portrait tome-spread tome-book)
+SKILLS=(tome tome-bili tome-wechat tome-clip tome-portrait tome-spread tome-book)
 FORCE=0
 LINK=1
 for arg in "$@"; do
