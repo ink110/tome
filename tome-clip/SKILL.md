@@ -6,7 +6,7 @@ description: tome 采集环（单篇剪藏 → Obsidian 图文笔记）。给一
 # tome-clip · 单篇采集 → Obsidian 图文笔记
 
 核心思路：**一个入口，按链接自动分流**。`clip.py` 只做 URL 路由；重活调用现有脚本
-（`tome-wechat/wechat_article.py`、`xhs_note.py`、`video_note.py`）；筛选、图注和笔记组装由 Claude 做。
+（`tome-wechat/wechat_article.py`、`xhs_note.py`、`sph_fetch.py`、`video_note.py`）；筛选、图注和笔记组装由 Claude 做。
 
 ```bash
 # 单篇统一入口
@@ -26,16 +26,44 @@ python3 ~/.claude/skills/tome-clip/scripts/clip.py --url <链接> --dry-run
 | `xiaohongshu.com` 图文笔记 | `xhs_note.py --url`：移动端 SSR 取元数据 → 原图 → qwen3-vl 逐字 OCR → `note.json` |
 | `xiaohongshu.com` 视频笔记 | `xhs_note.py --url` 自动判断并转交 `video_note.py`；也可直接 `video_note.py --url` |
 | `xhslink.com` 短链 | 同上，脚本自动跟随跳转；**必须带 `xsec_token`** |
-| `weixin.qq.com/sph/…` 视频号 | **半自动**：视频流拿不到（匿名接口只回封面+元数据）。先 `node sph_meta.js <链接> meta.json` 抓元数据，然后请 ink 投送 mp4（见下），再 `--file 投送的mp4 --sph-meta meta.json` |
+| `weixin.qq.com/sph/…` 视频号 | `sph_fetch.py --url`：抓元数据 → 同源原片（YouTube，标题/时长/日期校验）→ 下载 → 自动跑 `video_note.py`；找不到时打印 Yuanbao / 微信 PC / 手动投送三条兜底 |
 | 本地 mp4/mov | `video_note.py --file <路径> --title <标题>` |
 
 小红书链接没有 `xsec_token` 会拿不到数据。让 ink 在 App 里「分享 → 复制链接」，把整段分享内容发过来即可（短链也可以）。
 
 公众号文章由 `wechat_article.py` 直接写笔记和媒体，抓完检查标题、正文、图片/视频引用后汇报即可，不走下面的图文/视频组装流程。
 
-**视频号投送方式（告诉 ink 二选一）：**
-1. 电脑微信里打开该视频号视频 → 用 res-downloader 类抓包工具保存 mp4（或未装则：手机微信里把视频「保存到相册」再 AirDrop 到 Mac）；
-2. 文件放到 `~/Downloads/`，把路径给我即可继续，后续全自动。
+**视频号获取优先级（先跑 `sph_fetch.py`，失败再人工）：**
+
+1. **同源原片（零配置）**：用标题在 YouTube 搜索，核对标题 / 时长 / 发布日期后 `yt-dlp` 下载。
+   `--youtube-url` 可登记人工确认的原片，写入 `~/.cache/tome-clip/sph-sources.json`，以后复用。
+2. **腾讯元宝官方链路（一次扫码，之后全自动）**：`sph_yuanbao.py --url <sph链接>`。
+   首次弹出 Chrome 扫码登录腾讯元宝；之后同一命令自动解析、下载、跑视频流水线。
+   依赖 `download-wechat-channels`（默认在 `~/tools/download-wechat-channels`，
+   可用 `WECHAT_CHANNELS_SKILL` 指定路径）。
+3. **微信 PC + 本地代理（兜底）**：`ltaoo/wx_channels_download` 或
+   `ChantillyAn/wechat-video-skill`，电脑微信播放一次，从浏览历史下载并解密。
+4. **手动投送**：电脑微信保存 / 手机保存后传回 / 录屏，然后 `sph_fetch.py --file <mp4>`。
+
+注意：匿名分享页只返回封面和元数据，Chrome 和 Eagle 插件都拿不到视频流；不要在浏览器抓包这条路上浪费时间。
+
+```bash
+# 视频号：自动找同源原片并跑完整视频流水线
+python3 ~/.claude/skills/tome-clip/scripts/sph_fetch.py --url <sph链接> \
+    [--proxy http://127.0.0.1:7890]
+
+# 视频号：腾讯元宝官方链路（首次扫码，之后全自动）
+python3 ~/.claude/skills/tome-clip/scripts/sph_yuanbao.py --url <sph链接>
+
+# 登记人工确认的原片映射（以后同一链接自动复用）
+python3 .../sph_fetch.py --url <sph链接> --youtube-url <YouTube链接>
+
+# 用 Yuanbao / 微信 PC 下载到 ~/Downloads 的最新 mp4
+python3 .../sph_fetch.py --url <sph链接> --from-downloads
+
+# 手动投送
+python3 .../sph_fetch.py --url <sph链接> --file <mp4>
+```
 
 ## 流水线（一条命令全跑，也可分阶段续跑）
 
