@@ -2,13 +2,17 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。
 
-## [Unreleased]
+## [1.1.1] - 2026-11-22
 
 ### 变更
 
 - 本地媒体统一根：Obsidian 模式默认存 `<vault>/eagle-cache/`，folder 模式存 `<专题>/assets/`；新增 `media.local_root` / `media.link_prefix` 配置。
 - `wechat_article.py` 不再硬编码专题内 `assets/`，统一通过 `tome_common.media_dir()` / `media_link_prefix()` 取路径。
 - `tome-clip` 的视频帧/图文原图改存 `eagle-cache/videos|articles/<slug>/`；讲座笔记改存 `eagle-cache/lectures/<专题>/`。
+- 所有爬取内容（视频 / 图文 / 文章）的笔记统一落 `topics/<专题>/00-收集/`，按添加顺序编号，不再创建 `30-视频` / `30-图文`。
+- 专题非内容文件统一收进 `_meta/`：`progress.md`、`_ai-report.md`、`_dedup.md`、`scripts/`、`CLAUDE.md`、`manifest.json`。
+- `tome-portrait` 新项目写 `_meta/progress.md`，Obsidian 模式不再创建 `assets/`；`tome-wechat` 的 AI 报告写 `_meta/reports/`。
+- 过程产物（`_distill-*`、`*.tmp`、`*.log`、`*.bak`）有结果后清理；已完成的 `_meta/progress.md` 归档到 `_meta/archive/`。
 
 ## [1.1.0] - 2026-11-17
 

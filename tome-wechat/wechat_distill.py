@@ -37,9 +37,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_MODEL = None
 
 
-def note_ref(text):
+def note_ref(text, label=None):
     """笔记之间的引用：Obsidian 用双链，普通文件夹用纯文本。"""
-    return f"[[{text}]]" if tc.is_obsidian() else text
+    if tc.is_obsidian():
+        return f"[[{text}|{label}]]" if label else f"[[{text}]]"
+    return label or text
 
 AI_START = "<!-- wechat-ai:start -->"
 AI_END = "<!-- wechat-ai:end -->"
@@ -629,7 +631,9 @@ def write_dedup(note_dir, items, pairs, model):
             lines.append(f"| {note_ref(r['keep']['stem'])} | {note_ref(r['drop']['stem'])} | "
                          f"{r['score']:.2f} | {cell(r['reason'])} |")
 
-    path = os.path.join(note_dir, "_dedup.md")
+    reports_dir = os.path.join(os.path.dirname(note_dir), "_meta", "reports")
+    os.makedirs(reports_dir, exist_ok=True)
+    path = os.path.join(reports_dir, "_dedup.md")
     atomic_write(path, "\n".join(lines).rstrip() + "\n")
     return path, confirmed, candidates
 
@@ -659,8 +663,10 @@ def write_report(note_dir, model, stats):
     lines += ["", "## 高频标签 Top 20", "", "| 标签 | 篇数 |", "| --- | ---: |"]
     for k, v in tags.most_common(20):
         lines.append(f"| {k} | {v} |")
-    lines += ["", "## 去重", "", f"见 {note_ref('_dedup')}。只标记、不删除。", ""]
-    path = os.path.join(note_dir, "_ai-report.md")
+    lines += ["", "## 去重", "", f"见 {note_ref('_meta/reports/_dedup', '_dedup')}。只标记、不删除。", ""]
+    reports_dir = os.path.join(os.path.dirname(note_dir), "_meta", "reports")
+    os.makedirs(reports_dir, exist_ok=True)
+    path = os.path.join(reports_dir, "_ai-report.md")
     atomic_write(path, "\n".join(lines))
     return path
 
@@ -671,8 +677,8 @@ def update_index(topic_dir, note_dir):
         REPORT_START,
         "## AI 提炼",
         "",
-        f"- 阅读卡片与标签统计：{note_ref('_ai-report')}",
-        f"- 去重报告：{note_ref('_dedup')}",
+        f"- 阅读卡片与标签统计：{note_ref('_meta/reports/_ai-report', '_ai-report')}",
+        f"- 去重报告：{note_ref('_meta/reports/_dedup', '_dedup')}",
         REPORT_END,
     ])
     text = open(idx, encoding="utf-8").read() if os.path.exists(idx) else \

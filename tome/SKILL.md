@@ -59,7 +59,7 @@ python3 ~/.claude/skills/tome/scripts/doctor.py   # 检查 pandoc / Chrome / coo
 ├── 00-收集-外部/        外部材料
 ├── 10-画像/             画像 + 核验表 + _调研/
 ├── 20-输出/             传播案例库 / 选题清单 / 内容结构模板 / 全书
-└── progress.md          断点续跑
+└── _meta/progress.md    断点续跑
 
 <信息源>/eagle-cache/    obsidian 模式：所有图片/GIF/音频/视频统一放这里
 ```
@@ -73,7 +73,7 @@ python3 ~/.claude/skills/tome/scripts/doctor.py   # 检查 pandoc / Chrome / coo
 跨技能只认这些交接物：
 
 - `_manifest.json`：排序用 `(published, id)`，链接用 `source_url`。
-- `progress.md`：每完成一步勾选；中断后先读它，从第一个未勾选项继续。
+- `_meta/progress.md`：每完成一步勾选；中断后先读它，从第一个未勾选项继续。
 - 画像：`10-画像/<人物>·思维操作系统2.0.md` + `<人物>·核验表.md`。
 - 书稿：`20-输出/*传播案例库*.md`、`*选题清单*.md`、`*内容结构模板*.md`。
 
@@ -105,7 +105,7 @@ python3 ~/.claude/skills/tome-book/scripts/build_book.py --project "<项目>" ..
 3. **不估算数据**：微信不公开阅读 / 在看 / 转发数；传播复盘用代理指标，不写「10 万+」。
 4. **链接只取 manifest**：文章链接用 `source_url`；不要用「下一篇」或自己拼 `chksm`。
 5. **原话不改**：引语逐字；概括标「转述」；起诉 ≠ 定罪。
-6. **先读 progress**：已有项目先读 `progress.md`，从第一个未勾选项继续，不重爬、不重写。
+6. **先读 progress**：已有项目先读 `_meta/progress.md`，从第一个未勾选项继续，不重爬、不重写。
 7. **最小加载**：一次只加载当前阶段需要的子技能；单个项目内技能总数 ≤ 10。
 
 ## 什么时候读哪个子技能

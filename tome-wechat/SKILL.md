@@ -28,15 +28,15 @@ python3 ~/.claude/skills/tome-wechat/wechat_article.py --url <文章链接> \
 
 ### 文章内视频 → 图文笔记
 
-`wechat_article.py` 已经会解析腾讯视频 iframe 的 `videoPageInfos`，取最高清 mp4 下载到 `assets/`（带 `Referer`），笔记里以 `![[assets/xxx.mp4]]` 引用。**抓取只到「拿到 mp4」，转写和图文笔记交给 `tome-clip`**：
+`wechat_article.py` 已经会解析腾讯视频 iframe 的 `videoPageInfos`，取最高清 mp4 下载到库根 `eagle-cache/articles/<专题>/`（带 `Referer`），笔记里以 `![[eagle-cache/articles/<专题>/xxx.mp4]]` 引用。**抓取只到「拿到 mp4」，转写和图文笔记交给 `tome-clip`**：
 
 ```bash
 python3 ~/.claude/skills/tome-clip/scripts/video_note.py \
-  --file "<专题>/assets/<视频文件>.mp4" \
+  --file "<库根>/eagle-cache/articles/<专题>/<视频文件>.mp4" \
   --title "<文章标题>" --source-url "<文章链接>"
 ```
 
-跑完后按 `tome-clip` 的组装规则产出 10–25 张关键帧 + 图注 + 口播全文，落到 `topics/<topic>/30-视频/`。注意：
+跑完后按 `tome-clip` 的组装规则产出 10–25 张关键帧 + 图注 + 口播全文，落到 `topics/<topic>/00-收集/`。注意：
 
 - **不要再拿文章 URL 重下一次**：本地 mp4 就是最高清流，重复请求可能 403。
 - 只在用户明确要「视频转笔记」时跑；转写 + 视觉描述耗时较长，批量抓取时不要自动触发。
@@ -98,8 +98,8 @@ python3 ~/.claude/skills/tome-wechat/wechat_distill.py --topic <专题名>
 
 - 生成结果用 `<!-- wechat-ai:start/end -->` 包裹；`--force` 只替换该区块。
 - 标签存 frontmatter `ai_tags`，不覆盖原 `tags: [clippings]`；正文标签不带 `#`，不污染标签面板。
-- 去重先做标题/正文相似度候选，再逐对判断「内容重复 / 同主题系列 / 主题相关」；结果写 `00-收集/_dedup.md`，**只标记、不删除**。
-- 汇总报告写 `00-收集/_ai-report.md`，`index.md` 自动增加「AI 提炼」入口。
+- 去重先做标题/正文相似度候选，再逐对判断「内容重复 / 同主题系列 / 主题相关」；结果写 `_meta/reports/_dedup.md`，**只标记、不删除**。
+- 汇总报告写 `_meta/reports/_ai-report.md`，`index.md` 自动增加「AI 提炼」入口。
 - 改笔记前自动备份到 `~/.local/state/tome/backups/`（可用配置 `backups.dir` 改）。
 
 ## 批量后处理（自动）

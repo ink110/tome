@@ -33,15 +33,17 @@ description: tome 解构环。把一个公众人物的公开分享（B站合集�
 │   ├── 案例索引.md
 │   ├── 金句索引.md
 │   └── <人物>·传播案例库.md / 选题清单.md / 内容结构模板.md（可选）
-├── assets/                  封面等成书素材
-└── progress.md
+├── _meta/                   非内容文件
+│   ├── progress.md          断点续跑
+│   └── project.json         项目元数据
+└── assets/                  封面等（folder 模式；obsidian 模式放 eagle-cache/）
 ```
 
 ## 流程（三个闸门，其余连续跑）
 
 | 步 | 做什么 | 读 |
 |---|---|---|
-| 0 | 初始化目录 + `progress.md` | `scripts/new_project.py` |
+| 0 | 初始化目录 + `_meta/progress.md` | `scripts/new_project.py` |
 | 1 | 采集主信息源：先 `--raw-only` 全量落盘，再分批 `--distill-only` | `tome-bili` skill |
 | 2 | 来源地图：清点一手/二手/外部，做年份 × 主题覆盖矩阵，列缺口和补充清单 | `references/source-map.md` |
 | **G1** | **人工确认补充范围** | — |
@@ -70,7 +72,7 @@ description: tome 解构环。把一个公众人物的公开分享（B站合集�
 
 ## 断点续跑
 
-每完成一步，勾掉 `progress.md` 并记下产物路径。中断后先读 `progress.md`，从第一个未勾选项继续；已存在的文件默认跳过，不重爬、不重写。
+每完成一步，勾掉 `_meta/progress.md` 并记下产物路径。中断后先读 `_meta/progress.md`，从第一个未勾选项继续；已存在的文件默认跳过，不重爬、不重写。
 
 ## 什么时候读哪个文件
 

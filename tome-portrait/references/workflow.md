@@ -34,7 +34,7 @@
 │   ├── 案例索引.md
 │   ├── 金句索引.md
 │   └── <人物>·传播案例库.md / 选题清单.md
-└── progress.md
+└── _meta/progress.md
 ```
 
 命名规则：
@@ -57,7 +57,7 @@ python3 ~/.claude/skills/tome-portrait/scripts/new_project.py \
 
 不给 `--root` 时，项目目录由共享配置决定：folder 模式落到 `<信息源根目录>/<人物>`，obsidian 模式落到 `<Obsidian库>/topics/<人物>`。给了 `--root` 则在 `<root>/<人物>` 下建。
 
-脚本会建目录、写 `progress.md`、写一个空的 `_meta/project.json`（人物、链接、前缀、开始日期）。已有文件不覆盖；要重来加 `--force`。
+脚本会建目录、写 `_meta/progress.md`、写一个空的 `_meta/project.json`（人物、链接、前缀、开始日期）。已有文件不覆盖；要重来加 `--force`。
 
 ---
 
@@ -411,14 +411,14 @@ python3 ~/.claude/skills/tome-bili/crawl_collection.py "<BV>" \
      --title "<人物>·思维操作系统 2.0" \
      --subtitle "<一句话副标题>" \
      --author "<人物> 口述" \
-     --out "<项目>/assets/cover.png"
+     --out "<媒体根>/cover.png"   # obsidian: <库根>/eagle-cache/articles/<人物>/cover.png；folder: <项目>/assets/cover.png
    ```
 2. 一条命令同时产出 md 和 epub：
    ```bash
    python3 ~/.claude/skills/tome-portrait/scripts/make_book.py \
      --project "<项目>" \
      --subtitle "<一句话副标题>" \
-     --cover "<项目>/assets/cover.png"
+     --cover "<媒体根>/cover.png"
    ```
    产出：
    - `20-输出/<人物>·思维操作系统2.0（全书）.md`
@@ -464,9 +464,9 @@ python3 ~/.claude/skills/tome-spread/scripts/rank.py \
 
 ## 断点续跑与失败处理
 
-- 先读 `progress.md`；从第一个未勾选项继续。
+- 先读 `_meta/progress.md`；从第一个未勾选项继续。
 - 原始素材（`_raw.txt` / `_meta.json`）不删不改；蒸馏稿可重写。
 - 单集失败：记下集号，重跑该集；不要整批重来。
 - 分片失败：只重跑该片；其它片不动。
 - 外部搜索失败：把该维度标「未完成」，写进诚实边界，不要用模型记忆补。
-- 用户中途改需求：先改 `progress.md` 和本项目的 `project.json`，再改产物；不要反过来。
+- 用户中途改需求：先改 `_meta/progress.md` 和本项目的 `project.json`，再改产物；不要反过来。
