@@ -4,6 +4,12 @@
 
 ## [Unreleased]
 
+### 变更
+
+- 本地媒体统一根：Obsidian 模式默认存 `<vault>/eagle-cache/`，folder 模式存 `<专题>/assets/`；新增 `media.local_root` / `media.link_prefix` 配置。
+- `wechat_article.py` 不再硬编码专题内 `assets/`，统一通过 `tome_common.media_dir()` / `media_link_prefix()` 取路径。
+- `tome-clip` 的视频帧/图文原图改存 `eagle-cache/videos|articles/<slug>/`；讲座笔记改存 `eagle-cache/lectures/<专题>/`。
+
 ## [1.1.0] - 2026-11-17
 
 ### 新增

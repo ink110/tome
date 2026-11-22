@@ -147,7 +147,9 @@ python3 ~/.claude/skills/tome/scripts/setup.py --vault ~/Documents/我的库
 
 ### 媒体：Eagle 可选
 
-公众号的图片 / GIF / 视频默认存到项目内的 `assets/`，用标准 Markdown 引用，**不需要 Eagle**。
+**Obsidian 模式**默认把公众号图片 / GIF / 视频存到库根 `eagle-cache/articles/<专题>/`，
+笔记里引用 `eagle-cache/...`；**folder 模式**存到项目 `assets/`，引用 `assets/...`。
+所有本地素材统一在库根 `eagle-cache/`，不要在各专题下新建 `assets/` / `attachments/`。
 如果你本来就用 Eagle 管理素材，可以在配置里打开，它会额外上传一份并保留溯源链接。
 
 ## 七个技能
@@ -196,7 +198,7 @@ python3 ~/.claude/skills/tome-book/scripts/build_book.py \
 能。默认就是普通文件夹模式。
 
 **没有 Eagle 能用吗？**
-能。默认把媒体存到项目 `assets/`。
+能。Obsidian 模式存库根 `eagle-cache/articles/<专题>/`，folder 模式存项目 `assets/`。
 
 **Windows / Linux 支持吗？**
 目前只在 macOS 上完整测试。脚本是纯 Python，路径都已配置化，Linux 大概率可用但未充分测试。
