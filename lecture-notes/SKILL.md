@@ -132,9 +132,11 @@ python3 "$SKILL/scripts/format_transcript.py" check  "$WORK/txt/<场次>.txt"
 ```bash
 python3 "$SKILL/scripts/fill_images.py" \
   --map "$WORK/images.json" --vault "<笔记目录>" --src "<图片文件夹>" \
-  --media-dir "<Obsidian库>/eagle-cache/lectures/<专题>" \
-  --link-prefix "eagle-cache/lectures/<专题>"
+  --media-dir "<media.local_root>/lectures/<专题>" \
+  --link-prefix "<media.link_prefix>/lectures/<专题>"
 ```
+
+`media.local_root` / `media.link_prefix` 从 `setup.py --show` 读取，不要写死个人路径。
 
 图片命名：`eagle-cache/lectures/<专题>/<笔记前缀>-<序号>.jpg`。图注说明这张图证明了什么；同一张图只在一篇笔记里出现一次。
 

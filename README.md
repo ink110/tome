@@ -142,6 +142,11 @@ API Key 只从环境变量读取，不会写进配置文件，更不会进仓库
 Obsidian 模式把媒体统一放库根 `eagle-cache/`，folder 模式放 `<专题>/assets/`。
 所以随时可以切，不会锁死在某一个工具里。
 
+```bash
+# 切换成 Obsidian 模式
+python3 ~/.claude/skills/tome/scripts/setup.py --vault ~/Documents/我的库
+```
+
 ### lecture-notes：长讲座 / 大会 / 圆桌
 
 ```bash
@@ -151,11 +156,6 @@ python3 ~/.claude/skills/lecture-notes/scripts/doctor.py
 
 首次会要求确认**笔记保存目录**；如果没有指定，技能会主动提醒，并把最终绝对路径复述一遍。
 转写和图片 OCR 都支持本地或在线模型二选一；PDF 导出是可选项，不在默认流程。
-
-```bash
-# 切换成 Obsidian 模式
-python3 ~/.claude/skills/tome/scripts/setup.py --vault ~/Documents/我的库
-```
 
 ### 媒体：Eagle 可选
 
