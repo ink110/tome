@@ -136,8 +136,10 @@ dHash 只能保证「画面稳定」，不能保证「有信息」。稳定帧�
 
 ## 6. 落盘与溯源
 
-- 视频笔记 → `topics/<topic>/30-视频/<标题>.md`，帧 → `eagle-cache/videos/<slug>/fNNNN.jpg`
-- 图文笔记 → `topics/<topic>/30-图文/<标题>.md`，原图 → `eagle-cache/articles/<slug>/00X.jpg`
+- 所有爬取内容（视频 / 图文 / 文章）的笔记统一 → `topics/<topic>/00-收集/<标题>.md`
+- 视频帧 → `eagle-cache/videos/<slug>/fNNNN.jpg`
+- 图文原图 → `eagle-cache/articles/<slug>/00X.jpg`
+- 不要新建 `30-视频` / `30-图文` 目录；`00-收集` 里按添加顺序编号。
 - 索引更新 `topics/<topic>/index.md` 的 `<!-- tome-clip:start/end -->` 区块
 - frontmatter：`title / source(canonical) / share_url / author / published / platform / stats / tags`
 - `stats` 是发布时的快照，会变；保留抓取时的值即可，不要假装实时

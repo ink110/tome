@@ -17,6 +17,8 @@ description: tome 采集环（单篇剪藏 → Obsidian 图文笔记）。给一
 - 公众号文章媒体 → `eagle-cache/articles/<topic>/`
 不要在专题下新建 `assets/` 或 `attachments/` 目录。
 
+**笔记落盘铁律**：不管视频 / 图文 / 文章，笔记统一写 `topics/<topic>/00-收集/<标题>.md`，按添加顺序编号；不要新建 `30-视频` / `30-图文` 目录。
+
 ```bash
 # 单篇统一入口
 python3 ~/.claude/skills/tome-clip/scripts/clip.py --url <链接> [--topic 专题] [--dry-run]
@@ -176,8 +178,10 @@ tags: [clippings, xhs, image]
 ### 落盘与汇报
 
 5. **落盘**：
-   - 视频笔记 → `topics/<topic>/30-视频/<标题>.md`；帧图 → `eagle-cache/videos/<slug>/fNNNN.jpg`（只复制入选帧）
-   - 图文笔记 → `topics/<topic>/30-图文/<标题>.md`；原图 → `eagle-cache/articles/<slug>/00X.jpg`
+   - 所有爬取内容（视频 / 图文 / 文章）的笔记统一 → `topics/<topic>/00-收集/<标题>.md`
+   - 视频帧 → `eagle-cache/videos/<slug>/fNNNN.jpg`（只复制入选帧）
+   - 图文原图 → `eagle-cache/articles/<slug>/00X.jpg`
+   - 不要新建 `30-视频` / `30-图文` 目录；`00-收集` 里按添加顺序编号。
    - 更新 `topics/<topic>/index.md` 的 `<!-- tome-clip:start/end -->` 区块（没有就建，视频/图文分小节）。
 6. **Eagle 上传（可选）**：若 `media.eagle.enabled` 为 true，把入选帧/原图传到 Eagle：
    ```bash
