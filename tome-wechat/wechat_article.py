@@ -875,8 +875,10 @@ def discover_albums(article_urls, sample=30):
 
 # ---------------------------------------------------------------- 专题目录 / 索引
 def ensure_topic_dirs(topic_dir):
-    for sub in ("00-收集", "10-笔记", "20-输出", "assets"):
+    for sub in ("00-收集", "10-笔记", "20-输出"):
         os.makedirs(os.path.join(topic_dir, sub), exist_ok=True)
+    # 素材统一写 media_dir：Obsidian 模式是库根 eagle-cache，folder 模式是专题内 assets
+    os.makedirs(tc.media_dir(topic_dir), exist_ok=True)
 
 
 def _yaml_unquote(v):
@@ -1073,7 +1075,8 @@ def process_article(url, *, topic, eagle_folder=None,
         raise EmptyBodyError(EMPTY_BODY_MESSAGE)
 
     project = Path(tc.project_dir(topic))
-    media_root = project / "assets"
+    media_root = tc.media_dir(project)
+    media_prefix = tc.media_link_prefix(project)
     eagle_on = tc.eagle_enabled()
     eagle_folder = eagle_folder or tc.eagle_settings().get("folder") or "tome素材"
 
@@ -1086,7 +1089,7 @@ def process_article(url, *, topic, eagle_folder=None,
             eagle_library_root()
             folder_id = resolve_or_create_folder(eagle_folder)
             log(f"    Eagle 文件夹: {eagle_folder} (id={folder_id})")
-        log("[4/6] 下载媒体到 assets/" + (" 并上传 Eagle…" if eagle_on else "…"))
+        log(f"[4/6] 下载媒体到 {media_prefix}/" + (" 并上传 Eagle…" if eagle_on else "…"))
         os.makedirs(media_root, exist_ok=True)
         for i, it in enumerate(media.items):
             if it["kind"] == "iframe":
@@ -1101,7 +1104,7 @@ def process_article(url, *, topic, eagle_folder=None,
                     log(f"    [{i}] ✗ 视频 mp4 未解析到（vid={it['url']}）")
                     continue
                 it["url"] = src
-            cache_rel = f"assets/{stem}-{i}.{it['ext']}"
+            cache_rel = f"{media_prefix}/{stem}-{i}.{it['ext']}"
             cache_abs = media_root / f"{stem}-{i}.{it['ext']}"
             try:
                 download(src, str(cache_abs))
@@ -1119,7 +1122,7 @@ def process_article(url, *, topic, eagle_folder=None,
         if it["kind"] == "iframe":
             rendered = render_media_item(it, "")
         elif it.get("downloaded"):
-            rendered = render_media_item(it, f"assets/{stem}-{i}.{it['ext']}")
+            rendered = render_media_item(it, f"{media_prefix}/{stem}-{i}.{it['ext']}")
         else:
             rendered = f"> ⚠️ 下载失败：[{it['url']}]({it['url']})"
         body = body.replace(f"{{{{WEIXIN_MEDIA_{i}}}}}", rendered)
@@ -1185,7 +1188,7 @@ def run_single(args):
     print("\n完成 ✓")
     print(f"  笔记: {res['note_path']}")
     print(f"  索引: {res['index_path']}")
-    dest = "入 Eagle" if tc.eagle_enabled() else "存入 assets/"
+    dest = "入 Eagle" if tc.eagle_enabled() else "存入本地素材库"
     print(f"  媒体: {res['media_ok']} 个{dest}"
           f"（{res['iframe_count']} 个 iframe 占位，{res['media_failed']} 个失败）")
     return 0
@@ -1366,12 +1369,13 @@ def run_batch(args):
     todo = [a for a in articles if args.force or a["key"] not in existing_keys]
     skipped = len(articles) - len(todo)
 
+    eagle_folder = args.eagle_folder or tc.eagle_settings().get("folder") or "tome素材"
     folder_id = None
     if todo:
         try:
             eagle_library_root()
-            folder_id = resolve_or_create_folder(args.eagle_folder)
-            print(f"[Eagle] 文件夹: {args.eagle_folder} (id={folder_id})")
+            folder_id = resolve_or_create_folder(eagle_folder)
+            print(f"[Eagle] 文件夹: {eagle_folder} (id={folder_id})")
         except Exception as exc:
             print(f"[错误] Eagle 预检失败：{exc}", file=sys.stderr)
             return 2

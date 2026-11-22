@@ -47,6 +47,10 @@ DEFAULTS = {
     "bilibili": {"cookie_file": "~/.bilibili-cookies.txt"},
     "media": {
         "store": "local",  # local | eagle
+        # 本地素材根：空 = 自动。Obsidian 模式 <vault>/eagle-cache；folder 模式 <project>/assets
+        "local_root": "",
+        # 笔记里的链接前缀：空 = 自动。eagle-cache 或 assets
+        "link_prefix": "",
         "eagle": {
             "enabled": False,
             "base_url": "http://localhost:41595/api",
@@ -173,8 +177,32 @@ def collect_dir(project):
     return Path(project) / "00-收集"
 
 
+def media_root(project=None):
+    """本地素材根。
+
+    优先用 media.local_root；否则 Obsidian 模式落到库根 eagle-cache，
+    folder 模式落到专题内 assets。所有图片/GIF/音频/视频都应写到这里。
+    """
+    configured = get("media.local_root", "")
+    if configured:
+        return _expand(configured)
+    if is_obsidian():
+        vault = _expand(get("obsidian.vault"))
+        if vault:
+            return vault / "eagle-cache"
+    return Path(project) / "assets" if project else workspace() / "assets"
+
+
+def media_link_prefix(project=None):
+    """笔记里引用本地素材的前缀（相对库根/项目根）。"""
+    configured = get("media.link_prefix", "")
+    if configured:
+        return configured.strip("/")
+    return "eagle-cache" if media_root(project).name == "eagle-cache" else "assets"
+
+
 def media_dir(project):
-    return Path(project) / "assets"
+    return media_root(project)
 
 
 def output_dir():

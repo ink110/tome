@@ -53,9 +53,11 @@ tome 把这条路径自动化：
 ```mermaid
 flowchart LR
     A[B站合集] --> C[tome-bili]
-    B[公众号文章] --> D[tome-wechat]
+    B[公众号专辑 / 账号列表] --> D[tome-wechat]
+    V[公众号单篇 / 小红书图文·视频<br/>视频号] --> W[tome-clip]
     C --> E[00-收集<br/>原文 + 清单]
     D --> E
+    W --> E
     E --> F[tome-portrait<br/>画像 + 核验]
     F --> G[tome-spread<br/>传播复盘]
     G --> H[tome-book<br/>md + EPUB]
@@ -64,7 +66,9 @@ flowchart LR
 每个环节都能单独用：
 
 - 只要字幕和播放数据 → 用 `tome-bili`
-- 只想把公众号存进知识库 → 用 `tome-wechat`
+- 只想把**一篇**内容存进知识库（公众号 / 小红书图文·视频 / 视频号） → 用 `tome-clip`
+- 想批量抓公众号专辑 / 账号列表 / 做 AI 阅读卡片 → 用 `tome-wechat`
+- 长讲座 / 大会 / 圆桌 / 本地音视频 → 用 `lecture-notes`（模型本地/在线可选）
 - 已有语料，只缺一本电子书 → 用 `tome-book`
 
 ## 快速开始
@@ -76,7 +80,7 @@ git clone https://github.com/ink110/tome.git ~/tome
 cd ~/tome && ./install.sh
 ```
 
-`install.sh` 会把 6 个技能软链到 `~/.claude/skills/`，之后 `cd ~/tome && git pull` 就能更新，
+`install.sh` 会把 8 个技能软链到 `~/.claude/skills/`，之后 `cd ~/tome && git pull` 就能更新，
 开新会话即生效。目标已存在时会先备份再替换；想复制一份而不是软链，加 `--copy`。
 
 > 技能在会话启动时发现，安装完记得开一个新会话。
@@ -134,7 +138,8 @@ API Key 只从环境变量读取，不会写进配置文件，更不会进仓库
 | **普通文件夹（默认）** | `<工作目录>/<专题>/` | 普通 Markdown 链接 | 没有 Obsidian，或不想被库结构绑住 |
 | **Obsidian** | `<库根>/topics/<专题>/` | `[[双链]]` + `index.md` | 已经在用 Obsidian 管知识库 |
 
-两种模式的目录结构完全一样（`00-收集` / `10-画像` / `20-输出` / `assets`），
+两种模式的专题结构一样（`00-收集` / `10-画像` / `20-输出`），媒体位置不同：
+Obsidian 模式把媒体统一放库根 `eagle-cache/`，folder 模式放 `<专题>/assets/`。
 所以随时可以切，不会锁死在某一个工具里。
 
 ```bash
@@ -142,18 +147,32 @@ API Key 只从环境变量读取，不会写进配置文件，更不会进仓库
 python3 ~/.claude/skills/tome/scripts/setup.py --vault ~/Documents/我的库
 ```
 
+### lecture-notes：长讲座 / 大会 / 圆桌
+
+```bash
+python3 ~/.claude/skills/lecture-notes/scripts/setup.py
+python3 ~/.claude/skills/lecture-notes/scripts/doctor.py
+```
+
+首次会要求确认**笔记保存目录**；如果没有指定，技能会主动提醒，并把最终绝对路径复述一遍。
+转写和图片 OCR 都支持本地或在线模型二选一；PDF 导出是可选项，不在默认流程。
+
 ### 媒体：Eagle 可选
 
-公众号的图片 / GIF / 视频默认存到项目内的 `assets/`，用标准 Markdown 引用，**不需要 Eagle**。
+**Obsidian 模式**默认把公众号图片 / GIF / 视频存到库根 `eagle-cache/articles/<专题>/`，
+笔记里引用 `eagle-cache/...`；**folder 模式**存到项目 `assets/`，引用 `assets/...`。
+所有本地素材统一在库根 `eagle-cache/`，不要在各专题下新建 `assets/` / `attachments/`。
 如果你本来就用 Eagle 管理素材，可以在配置里打开，它会额外上传一份并保留溯源链接。
 
-## 六个技能
+## 八个技能
 
 | 技能 | 角色 | 做什么 |
 | --- | --- | --- |
 | `tome` | 中枢 | 判断你在哪一步，只加载对应的子技能；不直接采集或排版 |
 | `tome-bili` | 采集 | 单视频 / 多分 P / 合集批量 → 字幕、口播稿、播放数据、清单 |
-| `tome-wechat` | 采集 | 单篇 / 专辑 / 账号列表 → 笔记 + 媒体 + 阅读卡片 + 去重 |
+| `tome-wechat` | 采集 | 专辑 / 账号列表 / 批量 → 笔记 + 媒体 + 阅读卡片 + 去重 |
+| `tome-clip` | 采集 | 单篇链接（公众号文章 / 小红书图文·视频 / 视频号 / 本地视频）→ 图文笔记 |
+| `lecture-notes` | 笔记 | 长讲座 / 大会 / 圆桌 / 本地音视频 → Obsidian 总览 + 每场笔记；ASR/视觉可选本地或在线 |
 | `tome-portrait` | 解构 | 来源地图 → 分片调研 → 六类画像 → 核验表 → 三次人工闸门 |
 | `tome-spread` | 传播 | 筛出真正传播广的内容，输出案例卡、选题清单、结构模板 |
 | `tome-book` | 成书 | 合并 Markdown + 构建 EPUB，表格转卡片、口播分段、目录校验 |
@@ -192,7 +211,7 @@ python3 ~/.claude/skills/tome-book/scripts/build_book.py \
 能。默认就是普通文件夹模式。
 
 **没有 Eagle 能用吗？**
-能。默认把媒体存到项目 `assets/`。
+能。Obsidian 模式存库根 `eagle-cache/articles/<专题>/`，folder 模式存项目 `assets/`。
 
 **Windows / Linux 支持吗？**
 目前只在 macOS 上完整测试。脚本是纯 Python，路径都已配置化，Linux 大概率可用但未充分测试。
@@ -209,6 +228,8 @@ python3 ~/.claude/skills/tome-book/scripts/build_book.py \
 tome/                中枢：阶段判断、调度、交接物约定
 tome-bili/           B 站采集脚本 + 解析参考
 tome-wechat/         公众号采集、阅读卡片、媒体去重
+tome-clip/           单篇采集：公众号 / 小红书图文·视频 / 视频号 → 图文笔记
+lecture-notes/       长讲座 / 大会 / 圆桌 / 本地音视频 → Obsidian 笔记
 tome-portrait/       来源地图、画像规格、核验、项目初始化
 tome-spread/         传播筛选、案例卡、选题模板
 tome-book/           EPUB 构建器、校验器、封面生成、排版规则
@@ -224,8 +245,14 @@ docs/images/         README 用图
 | Claude Code | 运行技能 | 是 |
 | pandoc 3.x | EPUB 构建（自动探测） | 成书时 |
 | Google Chrome | 自动生成封面 | 可选 |
-| Ollama | 本地模型档位 | 可选 |
-| ffmpeg + faster-whisper | 无字幕视频转写 | 可选 |
+| Ollama | 本地模型档位；`tome-clip` / `lecture-notes` 的视觉任务可用本地视觉模型 | 可选 |
+| ffmpeg + mlx_whisper | 视频抽帧与口播转写（Apple Silicon） | 视频转笔记时 |
+| ffmpeg + ffprobe | `lecture-notes` 音视频处理 | `lecture-notes` |
+| mlx-whisper 或 OpenAI 兼容转写 | `lecture-notes` 转写，二选一 | `lecture-notes` |
+| Ollama 视觉模型 或 在线视觉 API | `lecture-notes` 图片 OCR，二选一 | `lecture-notes` |
+| Python markdown + Chrome | `lecture-notes` 可选 PDF 导出 | 可选 |
+| yt-dlp | 下载小红书等站点视频 | 视频转笔记时 |
+| Node + puppeteer-core | 抓视频号元数据 | 仅视频号 |
 | Eagle | 素材管理 | 可选 |
 
 `doctor.py` 会逐项告诉你缺什么。

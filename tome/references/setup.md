@@ -46,7 +46,9 @@ export TOME_API_KEY=sk-...
 | `folder`（默认） | `<工作目录>/<专题>/` | 普通 Markdown 链接 | 没有 Obsidian，或不想被库结构绑住 |
 | `obsidian` | `<库根>/topics/<专题>/` | `[[双链]]` + `index.md` | 已经在用 Obsidian 管知识库 |
 
-两者目录结构完全一样（`00-收集` / `10-画像` / `20-输出` / `assets`），切换只影响链接写法和根目录。
+两种模式的专题结构一样（`00-收集` / `10-画像` / `20-输出`），但媒体位置不同：
+- **obsidian 模式**：媒体统一在库根 `eagle-cache/`，笔记里引用 `eagle-cache/...`。
+- **folder 模式**：媒体在 `<专题>/assets/`，笔记里引用 `assets/...`。
 
 ```bash
 # 切换成 Obsidian
@@ -55,12 +57,17 @@ python3 ~/.claude/skills/tome/scripts/setup.py --vault ~/Documents/我的库
 
 ## 媒体存储：Eagle 可选
 
-默认把公众号图片 / GIF / 视频存到 `<专题>/assets/`，用标准 Markdown 引用，**不需要 Eagle**。
-开启 Eagle 后会额外上传一份，并在笔记里保留 `eagle://` 溯源链接。
+**obsidian 模式**默认把公众号图片 / GIF / 视频存到库根
+`eagle-cache/articles/<专题>/`，笔记里引用 `eagle-cache/...`；
+**folder 模式**存到 `<专题>/assets/`，引用 `assets/...`。不需要 Eagle，开启后额外上传一份，
+并在笔记里保留 `eagle://` 溯源链接。
 
-```bash
-# 编辑 ~/.config/tome/config.json
-"media": { "eagle": { "enabled": true, "folder": "tome素材" } }
+```json
+"media": {
+  "local_root": "",     // 空 = 自动：obsidian 用 <vault>/eagle-cache，folder 用 <专题>/assets
+  "link_prefix": "",    // 空 = 自动：eagle-cache 或 assets
+  "eagle": { "enabled": true, "folder": "tome素材" }
+}
 ```
 
 ## B站 cookie

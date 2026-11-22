@@ -101,9 +101,18 @@ albums:
 - `--discover-sample 0` = 全量扫描（593 篇约 2 GB 流量，默认只抽 30 篇）。
 - 纯文章链接列表可直接 `--list links.txt --topic <专题>` 抓取。
 
-## 视频转写（约定，未实现）
+## 视频转写（交给 tome-clip）
 
-后续视频转文本统一放 `topics/<topic>/30-视频/`，索引增加「视频转写」区块。本次不创建该目录、不实现视频抓取。
+抓取阶段只负责把腾讯视频 mp4 下到 `assets/`，不自动转写。批量结束后：
+
+1. 列出 `assets/` 里的 `*.mp4`，让用户选需要转成图文笔记的（不要默认全转，转写很慢）。
+2. 对选中的文件跑 `tome-clip`：
+   ```bash
+   python3 ~/.claude/skills/tome-clip/scripts/video_note.py \
+     --file "<专题>/assets/<视频>.mp4" --title "<标题>" --source-url "<原文章链接>"
+   ```
+3. 产物统一放 `topics/<topic>/30-视频/`，索引增加 `<!-- tome-clip:start/end -->` 区块。
+4. 长讲座 / 圆桌录像改用 `lecture-notes` 的视频流程。
 
 ## 批量产物
 

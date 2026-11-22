@@ -131,10 +131,12 @@ def main():
     print(f"项目目录：{os.path.abspath(root)}")
 
     for d in ["00-收集", "00-收集-外部", "10-画像/_调研",
-              "10-画像/_调研-外部", "20-输出", "assets", "_meta"]:
+              "10-画像/_调研-外部", "20-输出", "_meta"]:
         os.makedirs(os.path.join(root, d), exist_ok=True)
+    if not tc.is_obsidian():
+        os.makedirs(os.path.join(root, "assets"), exist_ok=True)
 
-    write_if_missing(os.path.join(root, "progress.md"),
+    write_if_missing(os.path.join(root, "_meta", "progress.md"),
                      PROGRESS.format(person=person, collection=args.collection or "（待填）",
                                      today=today, output_dir=tc.output_dir()), args.force)
     write_if_missing(os.path.join(root, "10-画像/来源地图.md"),

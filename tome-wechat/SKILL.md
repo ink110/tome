@@ -1,11 +1,13 @@
 ---
 name: tome-wechat
-description: 抓取微信公众号文章 / 专辑 / 博主文章列表（文字 + 图片/GIF/视频）生成 Markdown 笔记，媒体存项目 assets/（可选进 Eagle）；可用 Claude、在线 API 或本地模型生成阅读卡片、标签与去重报告。当用户给 mp.weixin.qq.com 文章链接、appmsgalbum 专辑链接，或说「爬这篇文章」「转存公众号」「抓这个专辑/合集」「批量抓这个博主」「账号列表」「AI 摘要」「阅读卡片」「提炼」「打标签」「去重」「文章存进知识库」时使用。
+description: 抓取微信公众号**专辑 / 博主文章列表 / 批量**（文字 + 图片/GIF/视频）生成 Markdown 笔记，媒体统一存库根 `eagle-cache/`（Obsidian 模式）或项目 `assets/`（folder 模式），可选进 Eagle；可用 Claude、在线 API 或本地模型生成阅读卡片、标签与去重报告。当用户给 appmsgalbum 专辑链接，或说「抓这个专辑/合集」「批量抓这个博主」「账号列表」「AI 摘要」「阅读卡片」「提炼」「打标签」「去重」时使用。**单篇文章请优先用 tome-clip。**
 ---
 
 # tome-wechat · 微信文章 / 专辑 → Markdown
 
 两个模式：单篇；专辑 / 账号列表批量。批量永远**先枚举、判断专题、必要时问用户，再抓**。
+
+单篇剪藏优先走 `tome-clip`（自动识别公众号 / 小红书 / 视频号）；本技能保留单篇脚本，兼容直接调用和批量流程复用。
 
 配置（媒体存哪、用哪个模型）由 `~/.config/tome/config.json` 决定，见 `tome/references/setup.md`。
 
@@ -17,12 +19,28 @@ python3 ~/.claude/skills/tome-wechat/wechat_article.py --url <文章链接> \
 ```
 
 - 默认专题 `素材收集`；笔记写 `<专题>/00-收集/`，并更新该专题 `index.md`。
-- 媒体默认存 `<专题>/assets/`；启用 Eagle 时额外上传一份并保留 `eagle://` 溯源。
+- 媒体默认存库根 `eagle-cache/articles/<专题>/`（Obsidian 模式）或 `<专题>/assets/`（folder 模式）；启用 Eagle 时额外上传一份并保留 `eagle://` 溯源。
 - `--dry-run`：只解析预览，不下载 / 上传 / 写文件。
 
 ### 图片消息（无正文纯图帖）
 
 单篇 exit 1「js_content 为空」但浏览器能打开 → 大概率是图片消息（纯图卡片）。处理：**解析 `picture_page_info_list` 取原图 → 下载进 assets → 视觉模型逐字 OCR → 图在上文字在下组装笔记**。完整流程见 [references/image-post.md](references/image-post.md)，不要当成「已删除」直接放弃。
+
+### 文章内视频 → 图文笔记
+
+`wechat_article.py` 已经会解析腾讯视频 iframe 的 `videoPageInfos`，取最高清 mp4 下载到库根 `eagle-cache/articles/<专题>/`（带 `Referer`），笔记里以 `![[eagle-cache/articles/<专题>/xxx.mp4]]` 引用。**抓取只到「拿到 mp4」，转写和图文笔记交给 `tome-clip`**：
+
+```bash
+python3 ~/.claude/skills/tome-clip/scripts/video_note.py \
+  --file "<库根>/eagle-cache/articles/<专题>/<视频文件>.mp4" \
+  --title "<文章标题>" --source-url "<文章链接>"
+```
+
+跑完后按 `tome-clip` 的组装规则产出 10–25 张关键帧 + 图注 + 口播全文，落到 `topics/<topic>/00-收集/`。注意：
+
+- **不要再拿文章 URL 重下一次**：本地 mp4 就是最高清流，重复请求可能 403。
+- 只在用户明确要「视频转笔记」时跑；转写 + 视觉描述耗时较长，批量抓取时不要自动触发。
+- 长讲座 / 圆桌录像不用 `tome-clip`，用 `lecture-notes` 的 `video_prepare.py`（按幻灯片稳定帧和 OCR 优化）。
 
 ## 专辑 / 账号列表
 
@@ -80,15 +98,15 @@ python3 ~/.claude/skills/tome-wechat/wechat_distill.py --topic <专题名>
 
 - 生成结果用 `<!-- wechat-ai:start/end -->` 包裹；`--force` 只替换该区块。
 - 标签存 frontmatter `ai_tags`，不覆盖原 `tags: [clippings]`；正文标签不带 `#`，不污染标签面板。
-- 去重先做标题/正文相似度候选，再逐对判断「内容重复 / 同主题系列 / 主题相关」；结果写 `00-收集/_dedup.md`，**只标记、不删除**。
-- 汇总报告写 `00-收集/_ai-report.md`，`index.md` 自动增加「AI 提炼」入口。
+- 去重先做标题/正文相似度候选，再逐对判断「内容重复 / 同主题系列 / 主题相关」；结果写 `_meta/reports/_dedup.md`，**只标记、不删除**。
+- 汇总报告写 `_meta/reports/_ai-report.md`，`index.md` 自动增加「AI 提炼」入口。
 - 改笔记前自动备份到 `~/.local/state/tome/backups/`（可用配置 `backups.dir` 改）。
 
 ## 批量后处理（自动）
 
 每批抓取成功结束后自动跑 `post_batch_dedupe.py`：
 
-- **媒体目录**：所有 `assets/`（含旧的 `eagle-cache/`）内按内容哈希去重，引用改到保留副本，重复文件移入备份目录（改前自动备份笔记）。
+- **媒体目录**：Obsidian 模式统一在库根 `eagle-cache/`，folder 模式在专题 `assets/`；按内容哈希去重，引用改到保留副本，重复文件移入备份目录（改前自动备份笔记）。
 - **Eagle**（仅启用时）：只统计重复，并尝试打开「查找 > 扫描重复的文件」窗口；**绝不自动合并或删除**。
 - 手动补跑：`python3 ~/.claude/skills/tome-wechat/post_batch_dedupe.py [--dry-run]`；抓取时加 `--no-post-dedupe` 跳过。
 
@@ -108,7 +126,7 @@ python3 ~/.claude/skills/tome-wechat/wechat_distill.py --topic <专题名>
 
 - 笔记 frontmatter：`title` / `source` / `author` / `published` / `created` / `description` / `tags: clippings`。
 - 提炼后额外增加 `ai_distilled` / `ai_model` / `ai_summary` / `ai_topic_key` / `ai_content_type` / `ai_tags`，不改原字段。
-- 媒体真源在 `assets/`，开着 Eagle 时另有副本；删除原件会断 `eagle://` 溯源。
+- 媒体真源在库根 `eagle-cache/`（Obsidian 模式）或 `assets/`（folder 模式），开着 Eagle 时另有副本；删除原件会断 `eagle://` 溯源。
 
 ## 参考
 

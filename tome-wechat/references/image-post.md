@@ -20,10 +20,10 @@ grep -c 'picture_page_info_list' /tmp/wx.html   # >0 即图片消息
 ## 处理流程（无现成脚本，按此手动执行）
 
 1. **解析**：curl 下载页面（带 UA）→ 正则取 `picture_page_info_list` 数组 → 提取全部 `cdn_url`，过滤掉 `tc.qq.com/stodownload`。
-2. **下载图片**：必须带 `Referer: https://mp.weixin.qq.com/`（缺了 403）。存到 `topics/<topic>/00-收集/eagle-cache/<标题>-<序号>.<png|jpg>`，序号保持数组顺序（即原文图片顺序）。`wx_fmt=` 决定扩展名。
+2. **下载图片**：必须带 `Referer: https://mp.weixin.qq.com/`（缺了 403）。存到库根 `eagle-cache/articles/<topic>/<标题>-<序号>.<png|jpg>`（Obsidian 模式），序号保持数组顺序（即原文图片顺序）。`wx_fmt=` 决定扩展名。
 3. **上传 Eagle**：`POST http://localhost:41595/api/item/addFromPath`，与单篇流程一致。**Eagle 未启动会 connection refused**——此时跳过 Eagle 链接只写本地嵌入，笔记不受影响，之后可补传。
 4. **OCR 提取文字**：本地 视觉模型（Ollama 可用 `qwen3-vl:32b-instruct`，8192 ctx 足够），逐张调用 `/api/generate`，提示词要点：「逐字转写、保持结构、表格用 Markdown、不要总结不要省略、看不清用 [?]」。实测 13 张约 6–8 分钟（100% GPU），结果缓存到临时 JSON 防中断重来。
-5. **组装笔记**：frontmatter 与单篇约定一致（author 用 `nick_name`）；正文开头加一行说明「本文为微信图片消息，文字由视觉模型从 N 张图逐字提取」；然后**每张图 `![[assets/…]]` 在上、提取文字在下**，方便对照校对；末尾更新 `index.md`。
+5. **组装笔记**：frontmatter 与单篇约定一致（author 用 `nick_name`）；正文开头加一行说明「本文为微信图片消息，文字由视觉模型从 N 张图逐字提取」；然后**每张图 `![[eagle-cache/articles/<topic>/…]]` 在上、提取文字在下**，方便对照校对；末尾更新 `index.md`。
 
 ## 质量与边界
 
