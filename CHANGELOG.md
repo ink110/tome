@@ -2,6 +2,23 @@
 
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循语义化版本。
 
+## [1.2.0] - 2026-11-22
+
+### 新增
+
+- `lecture-notes` 技能：长讲座 / 大会 / 会议 / 圆桌 / 本地音视频 → Obsidian 总览 + 每场图文笔记；图片统一 `eagle-cache/lectures/<专题>/`。
+- ASR / 视觉模型可选：本地 `mlx-whisper` + Ollama，或在线 OpenAI 兼容接口；视觉也可交给 Claude Code 在会话中读图。
+- `lecture-notes/scripts/doctor.py`：检查 Python、ffmpeg/ffprobe、ASR、视觉模型、Chrome、markdown，并给出安装建议。
+- `lecture-notes/scripts/setup.py`：首次配置笔记保存目录和模型 provider；首次运行会主动确认保存地址。
+- `lecture-notes/scripts/transcribe.py`：本地 / 在线转写统一入口，保留抑制重复的 whisper 参数。
+- PDF 导出改为明确的可选项，不进入默认流程。
+- `install.sh` / README 登记 `lecture-notes`，公开仓库不再忽略该目录。
+
+### 变更
+
+- `lecture-notes` 的 OCR 脚本支持 `ollama` / `openai` / `claude` 三种 provider；`sips` 缺失时退回 ffmpeg。
+- `export_pdf.py` 自动探测 Chrome 和图片缩放工具，跨平台打开 PDF。
+
 ## [1.1.1] - 2026-11-22
 
 ### 变更

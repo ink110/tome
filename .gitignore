@@ -15,7 +15,6 @@ node_modules/
 /neat-freak/
 /skill-creator/
 /ui-ux-pro-max/
-/lecture-notes/
 
 # 构建产物与运行中间文件
 *.epub

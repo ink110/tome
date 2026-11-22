@@ -5,6 +5,8 @@ description: tome 采集环（单篇剪藏 → Obsidian 图文笔记）。给一
 
 # tome-clip · 单篇采集 → Obsidian 图文笔记
 
+> **路径以配置为准**：实际目录以 `~/.config/tome/config.json` 的 `obsidian.folder` / `media.local_root` / `media.link_prefix` 为准。下文写 `topics/`、`eagle-cache/` 时按配置映射（库使用编号目录如 `02-topics/`、`04-eagle-cache/` 时也一样）。
+
 核心思路：**一个入口，按链接自动分流**。`clip.py` 只做 URL 路由；重活调用现有脚本
 （`tome-wechat/wechat_article.py`、`xhs_note.py`、`sph_fetch.py`、`video_note.py`）；筛选、图注和笔记组装由 Claude 做。
 
