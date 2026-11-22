@@ -29,7 +29,7 @@ SKILL.md 只保留规则，具体原因和排查过程放这里。
 `var videoPageInfos` 里，一支视频多个清晰度，取 `video_quality_level` 最高那档。
 下载必须带 `Referer: https://mp.weixin.qq.com/`。
 
-抓取阶段只负责把 mp4 下到 `assets/`；转写和图文笔记交给视频流水线。
+抓取阶段只负责把 mp4 下到本地素材库（Obsidian 模式 `eagle-cache/`，folder 模式 `assets/`）；转写和图文笔记交给视频流水线。
 **不要再用文章 URL 重下一次**：本地 mp4 就是最高清流，重复请求可能 403。
 
 ### 视频号只能拿元数据
@@ -136,8 +136,8 @@ dHash 只能保证「画面稳定」，不能保证「有信息」。稳定帧�
 
 ## 6. 落盘与溯源
 
-- 视频笔记 → `topics/<topic>/30-视频/<标题>.md`，帧 → `.../attachments/<slug>/fNNNN.jpg`
-- 图文笔记 → `topics/<topic>/30-图文/<标题>.md`，原图 → `.../attachments/<slug>/00X.jpg`
+- 视频笔记 → `topics/<topic>/30-视频/<标题>.md`，帧 → `eagle-cache/videos/<slug>/fNNNN.jpg`
+- 图文笔记 → `topics/<topic>/30-图文/<标题>.md`，原图 → `eagle-cache/articles/<slug>/00X.jpg`
 - 索引更新 `topics/<topic>/index.md` 的 `<!-- tome-clip:start/end -->` 区块
 - frontmatter：`title / source(canonical) / share_url / author / published / platform / stats / tags`
 - `stats` 是发布时的快照，会变；保留抓取时的值即可，不要假装实时

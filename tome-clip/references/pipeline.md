@@ -96,7 +96,7 @@ python3 ~/.claude/skills/tome-clip/scripts/eagle_upload.py --workdir <workdir>
 ```
 
 产物 `eagle_uploads.json` 记录 `file → item_id → eagle://item/...`；笔记里在每张图下加
-`[在 Eagle 查看](eagle://item/<ID>)`，`attachments/` 继续作为本地预览副本。配置与
+`[在 Eagle 查看](eagle://item/<ID>)`，`eagle-cache/videos|articles/` 继续作为本地预览。配置与
 `tome-wechat` 共用 `~/.config/tome/config.json` 的 `media.eagle`，Eagle 需运行在 41595。
 
 ## 耗时参考
