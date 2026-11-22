@@ -59,13 +59,16 @@ python3 ~/.claude/skills/tome/scripts/doctor.py   # 检查 pandoc / Chrome / coo
 ├── 00-收集-外部/        外部材料
 ├── 10-画像/             画像 + 核验表 + _调研/
 ├── 20-输出/             传播案例库 / 选题清单 / 内容结构模板 / 全书
-├── assets/              媒体与封面
 └── progress.md          断点续跑
+
+<信息源>/eagle-cache/    obsidian 模式：所有图片/GIF/音频/视频统一放这里
 ```
 
 `<信息源>` 在 folder 模式是工作目录，在 obsidian 模式是库根下的 `topics/`。
 
-两种信息源模式的目录结构完全相同，只有根目录和链接写法（`[[双链]]` vs 普通链接）不同。
+两种信息源模式的专题结构相同，只有根目录、媒体位置和链接写法（`[[双链]]` vs 普通链接）不同：
+- **obsidian 模式**：媒体统一 `eagle-cache/articles|videos|lectures/...`，链接 `eagle-cache/...`。
+- **folder 模式**：媒体放 `<专题>/assets/`，链接 `assets/...`。
 
 跨技能只认这些交接物：
 

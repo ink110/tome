@@ -57,7 +57,12 @@ def show(cfg, path):
     print(f"  信息源模式   : {cfg['storage']}"
           + (f"（vault: {cfg['obsidian']['vault']}）" if cfg['storage'] == 'obsidian' else ""))
     print(f"  模型档位     : {tc.model_summary()}")
-    print(f"  媒体存储     : {'Eagle' if cfg['media']['eagle']['enabled'] else '项目内 assets/'}")
+    print(f"  媒体存储     : {'Eagle + 本地副本' if cfg['media']['eagle']['enabled'] else '本地素材库'}")
+    if cfg.get("storage") == "obsidian" and cfg.get("obsidian", {}).get("vault"):
+        media_root = Path(os.path.expanduser(cfg["obsidian"]["vault"])) / "eagle-cache"
+    else:
+        media_root = Path(os.path.expanduser(cfg["workspace"])) / "<专题>/assets"
+    print(f"  本地素材根   : {media_root}")
     print(f"  B站 cookie   : {cfg['bilibili']['cookie_file']}")
     print(f"  成书输出     : {cfg['output']['dir']}")
 
@@ -157,7 +162,7 @@ def main():
                 cfg["models"]["ollama"]["model"])
 
         print("\n可选：公众号采集是否用 Eagle 管理图片/视频？")
-        print("  不用 Eagle 会把媒体存到项目内的 assets/，完全够用。")
+        print("  不用 Eagle 也会把媒体存到本地素材库（Obsidian 用库根 eagle-cache/，folder 用专题 assets/）。")
         if ask("  启用 Eagle？(y/N)", "N").lower().startswith("y"):
             cfg["media"]["eagle"]["enabled"] = True
             cfg["media"]["eagle"]["folder"] = ask(
