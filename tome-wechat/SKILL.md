@@ -40,7 +40,7 @@ python3 ~/.claude/skills/tome-clip/scripts/video_note.py \
 
 - **不要再拿文章 URL 重下一次**：本地 mp4 就是最高清流，重复请求可能 403。
 - 只在用户明确要「视频转笔记」时跑；转写 + 视觉描述耗时较长，批量抓取时不要自动触发。
-- 长讲座 / 圆桌录像不用 `tome-clip`，用 `obsidian-lecture-notes` 的 `video_prepare.py`（按幻灯片稳定帧和 OCR 优化）。
+- 长讲座 / 圆桌录像不用 `tome-clip`，用 `lecture-notes` 的 `video_prepare.py`（按幻灯片稳定帧和 OCR 优化）。
 
 ## 专辑 / 账号列表
 

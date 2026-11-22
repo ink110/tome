@@ -112,7 +112,7 @@ albums:
      --file "<专题>/assets/<视频>.mp4" --title "<标题>" --source-url "<原文章链接>"
    ```
 3. 产物统一放 `topics/<topic>/30-视频/`，索引增加 `<!-- tome-clip:start/end -->` 区块。
-4. 长讲座 / 圆桌录像改用 `obsidian-lecture-notes` 的视频流程。
+4. 长讲座 / 圆桌录像改用 `lecture-notes` 的视频流程。
 
 ## 批量产物
 

@@ -149,7 +149,7 @@ dHash 只能保证「画面稳定」，不能保证「有信息」。稳定帧�
 
 **已执行（2026-11）**：`tome-video` 重命名为 `tome-clip`，做单篇采集的薄路由；
 `tome-wechat` 保留批量 / 专辑 / 账号列表 / AI 阅读卡片 / 去重；
-`obsidian-lecture-notes` 保留长讲座 / 圆桌；`tome-portrait/spread/book` 保留成书链路。
+`lecture-notes` 保留长讲座 / 圆桌；`tome-portrait/spread/book` 保留成书链路。
 
 理由：
 
